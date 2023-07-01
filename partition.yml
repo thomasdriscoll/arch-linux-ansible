@@ -3,13 +3,8 @@
   hosts: localhost
   become: yes
 
-  vars:
-    disk: /dev/sdb  # Replace with the appropriate disk you want to set up LVM on
-    vg_name: myvg
-    lv_name: mylv
-    lv_size: 10G
-    crypt_name: mycrypt
-    passphrase: your_passphrase
+  vars_files:
+    - vars.yml
 
   tasks:
     - name: Create physical volume
@@ -22,12 +17,12 @@
         vg: "{{ vg_name }}"
         pvs: "{{ disk }}"
 
-    - name: Create logical volume
+    - name: Create logical volume for root
       # Create a logical volume within the volume group
       lvol:
         vg: "{{ vg_name }}"
-        lv: "{{ lv_name }}"
-        size: "{{ lv_size }}"
+        lv: "{{ root_lv }}"
+        size: "{{ root_lv_size }}"
 
     - name: Set up dm-crypt on logical volume
       # Set up dm-crypt encryption on the logical volume using the specified passphrase
@@ -51,7 +46,7 @@
       # Create a filesystem on the encrypted volume
       filesystem:
         fstype: ext4  # Replace with the desired filesystem type (e.g., ext4, xfs, etc.)
-        dev: "/dev/mapper/{{ crypt_name }}"
+        dev: "/dev/mapper/{{ root_crypt_name }}"
 
     - name: Mount encrypted filesystem
       # Mount the encrypted filesystem to the specified mount path
