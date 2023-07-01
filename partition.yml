@@ -1,0 +1,65 @@
+---
+- name: Set up LVM with dm-crypt
+  hosts: localhost
+  become: yes
+
+  vars:
+    disk: /dev/sdb  # Replace with the appropriate disk you want to set up LVM on
+    vg_name: myvg
+    lv_name: mylv
+    lv_size: 10G
+    crypt_name: mycrypt
+    passphrase: your_passphrase
+
+  tasks:
+    - name: Create physical volume
+      # Create a physical volume on the specified disk
+      command: pvcreate "{{ disk }}"
+
+    - name: Create volume group
+      # Create a volume group using the physical volume
+      lvg:
+        vg: "{{ vg_name }}"
+        pvs: "{{ disk }}"
+
+    - name: Create logical volume
+      # Create a logical volume within the volume group
+      lvol:
+        vg: "{{ vg_name }}"
+        lv: "{{ lv_name }}"
+        size: "{{ lv_size }}"
+
+    - name: Set up dm-crypt on logical volume
+      # Set up dm-crypt encryption on the logical volume using the specified passphrase
+      command: echo "{{ passphrase }}" | cryptsetup luksFormat --type luks2 "/dev/{{ vg_name }}/{{ lv_name }}"
+      become_user: root
+      become: yes
+      args:
+        warn: no
+        stdin: yes
+
+    - name: Open encrypted logical volume
+      # Open the encrypted logical volume with the specified crypt_name and passphrase
+      command: echo "{{ passphrase }}" | cryptsetup luksOpen "/dev/{{ vg_name }}/{{ lv_name }}" "{{ crypt_name }}"
+      become_user: root
+      become: yes
+      args:
+        warn: no
+        stdin: yes
+
+    - name: Create encrypted filesystem
+      # Create a filesystem on the encrypted volume
+      filesystem:
+        fstype: ext4  # Replace with the desired filesystem type (e.g., ext4, xfs, etc.)
+        dev: "/dev/mapper/{{ crypt_name }}"
+
+    - name: Mount encrypted filesystem
+      # Mount the encrypted filesystem to the specified mount path
+      mount:
+        path: /mnt  # Replace with the desired mount path
+        src: "/dev/mapper/{{ crypt_name }}"
+        fstype: ext4  # Replace with the desired filesystem type
+        state: mounted
+
+    # Additional tasks can be added for further configuration or customization
+

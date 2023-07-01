@@ -1,0 +1,73 @@
+---
+- name: Bootstrap Arch Linux
+  hosts: localhost
+  become: yes
+  vars:
+    username: your_username
+    password: your_password
+
+  tasks:
+    - name: Install required packages
+      pacman:
+        name: base
+        state: present
+
+    - name: Generate fstab
+      command: genfstab -U /mnt >> /mnt/etc/fstab
+      delegate_to: localhost
+      when: ansible_mounts[0].mount == '/'
+
+    - name: Mount boot partition
+      mount:
+        name: /dev/sda1  # Replace with the appropriate boot partition
+        mount: /mnt/boot
+
+    - name: Set up timezone
+      timezone:
+        name: Etc/UTC
+        state: present
+      register: tz_result
+
+    - name: Set up hostname
+      hostname:
+        name: my_arch_server
+      register: hostname_result
+
+    - name: Update hosts file
+      lineinfile:
+        dest: /mnt/etc/hosts
+        line: "127.0.0.1 localhost.localdomain localhost"
+        insertafter: "^::1"
+        state: present
+
+    - name: Set root password
+      user:
+        name: root
+        password: "{{ password | password_hash('sha512') }}"
+      register: root_password_result
+
+    - name: Create user
+      user:
+        name: "{{ username }}"
+        password: "{{ password | password_hash('sha512') }}"
+        createhome: yes
+        shell: /bin/bash
+        groups: wheel
+        append: yes
+      register: user_result
+
+    - name: Install and configure sudo
+      pacman:
+        name: sudo
+        state: present
+      notify: Update sudoers
+
+  handlers:
+    - name: Update sudoers
+      lineinfile:
+        dest: /mnt/etc/sudoers
+        line: "%wheel ALL=(ALL) ALL"
+        state: present
+        validate: visudo -cf %s
+
+
