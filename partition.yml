@@ -26,7 +26,7 @@
 
     - name: Set up dm-crypt on logical volume
       # Set up dm-crypt encryption on the logical volume using the specified passphrase
-      command: echo "{{ passphrase }}" | cryptsetup luksFormat --type luks2 "/dev/{{ vg_name }}/{{ lv_name }}"
+      command: echo "{{ passphrase }}" | cryptsetup luksFormat --type luks2 "/dev/{{ vg_name }}/{{ root_lv }}"
       become_user: root
       become: yes
       args:
@@ -34,8 +34,8 @@
         stdin: yes
 
     - name: Open encrypted logical volume
-      # Open the encrypted logical volume with the specified crypt_name and passphrase
-      command: echo "{{ passphrase }}" | cryptsetup luksOpen "/dev/{{ vg_name }}/{{ lv_name }}" "{{ crypt_name }}"
+      # Open the encrypted logical volume with the specified root_crypt_name and passphrase
+      command: echo "{{ passphrase }}" | cryptsetup luksOpen "/dev/{{ vg_name }}/{{ root_lv }}" "{{ root_crypt_name }}"
       become_user: root
       become: yes
       args:
@@ -52,7 +52,7 @@
       # Mount the encrypted filesystem to the specified mount path
       mount:
         path: /mnt  # Replace with the desired mount path
-        src: "/dev/mapper/{{ crypt_name }}"
+        src: "/dev/mapper/{{ root_crypt_name }}"
         fstype: ext4  # Replace with the desired filesystem type
         state: mounted
 
