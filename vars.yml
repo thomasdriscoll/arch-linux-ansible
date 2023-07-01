@@ -1,11 +1,9 @@
-vars:
-    disk: /dev/sda  # Replace with the appropriate disk you want to set up LVM on
-    vg_name: MainVolGroup
-    root_lv: cryptroot
-    root_lv_size: 10%FREE
-    home_lv: crypthome
-    home_lv_size: 90%FREE
-    root_crypt_name: root
-    home_crypt_name: home
-    passphrase:
-
+disk: /dev/sda  # Replace with the appropriate disk you want to set up LVM on
+vg_name: MainVolGroup
+root_lv: cryptroot
+root_lv_size: 10%FREE
+home_lv: crypthome
+home_lv_size: 90%FREE
+root_crypt_name: root
+home_crypt_name: home
+passphrase:
