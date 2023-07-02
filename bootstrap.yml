@@ -110,17 +110,22 @@
       become_user: root
 
     - name: Arch-chroot
-      ansible.builtin.command: arch-chroot /mnt command_to_execute
+      ansible.builtin.command: arch-chroot /mnt
       become: true
       become_user: root
 
     - name: Configure mkinitcpio
       lineinfile:
-        path: "/mnt/etc/mkinitcpio.conf"
+        path: "/etc/mkinitcpio.conf"
         regexp: "^HOOKS=(.*)"
         line: 'HOOKS="{{ item.hooks }}"'
       with_items:
         - { hooks: "base systemd autodetect modconf kms keyboard sd-vconsole block sd-encrypt lvm2 filesystems fsck" }
+      become: true
+      become_user: root
+
+    - name: Run mkinitcpio
+      command: mkinitcpio -P
       become: true
       become_user: root
     # Additional tasks can be added for further configuration or customization
