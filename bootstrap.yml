@@ -1,73 +1,136 @@
 ---
-- name: Bootstrap Arch Linux
+- name: Set up LVM with dm-crypt
   hosts: localhost
   become: yes
-  vars:
-    username: your_username
-    password: your_password
+
+  vars_files:
+    - vars.yml
 
   tasks:
-    - name: Install required packages
-      pacman:
-        name: base
+    - name: Create partitions
+      parted:
+        device: /dev/sda
+        number: "{{ item.number }}"
         state: present
+        part_end: "{{ item.part_end }}"
+        part_start: "{{ item.part_start }}"
+      with_items:
+        - { number: 1, part_start: 1MiB, part_end: 300MiB }
+        - { number: 2, part_start: 300MiB, part_end: "100%" }
+      become: true
+      become_user: root
+
+    - name: Create physical volume
+      # Create a physical volume on the specified disk
+      command: pvcreate "{{ main_part }}"
+      become: true
+      become_user: true
+
+    - name: Create volume group
+      # Create a volume group using the physical volume
+      lvg:
+        vg: "{{ vg_name }}"
+        pvs: "{{ main_part }}"
+
+    - name: Create logical volume for root
+      # Create a logical volume within the volume group
+      lvol:
+        vg: "{{ vg_name }}"
+        lv: "{{ item.name }}"
+        size: "{{ item.size }}"
+      with_items:
+        - { name: "{{ root_lv }}", size: "{{ root_lv_size }}" }
+        - { name: "{{ swap_lv }}", size: "{{ swap_lv_size }}" }
+        - { name: "{{ tmp_lv }}", size: "{{ tmp_lv_size }}" }
+        - { name: "{{ home_lv }}", size: "{{ home_lv_size }}" }
+
+    - name: Set up and open dm-crypt on logical volume
+      community.crypto.luks_device:
+        name: "{{ root_crypt_name }}"
+        state: opened
+        device: "/dev/{{ vg_name }}/{{ root_lv }}"
+        cipher: aes-xts-plain64
+        passphrase: "{{ passphrase }}"
+      become: true
+      become_user: root
+
+    - name: Create encrypted filesystem
+      # Create a filesystem on the encrypted volume
+      filesystem:
+        fstype: ext4  # Replace with the desired filesystem type (e.g., ext4, xfs, etc.)
+        dev: "/dev/mapper/{{ root_crypt_name }}"
+
+    - name: Zero out the boot partition
+      command: dd if=/dev/zero of=/dev/sda1 bs=1M status=progress
+      become: true
+      become_user: root
+
+    - name: Format partition as fat32
+      command: mkfs.fat -F32 /dev/sda1
+      become: true
+      become_user: root
+
+    - name: Create mount point
+      file:
+        path: /mnt/boot
+        state: directory
+      become: true
+      become_user: root
+
+    - name: Run reflector command
+      hosts: your_target_hosts
+      tasks:
+        - name: Run reflector
+          ansible.builtin.command: reflector --country US --age 12 --sort rate --save /etc/pacman.d/mirrorlist
+          become: true
+          become_user: root
+### Mounting
+    - name: Mount partition
+      mount:
+        path: /mnt/boot
+        src: /dev/sda1
+        fstype: vfat
+        state: mounted
+      become: true
+      become_user: root
+
+    - name: Mount encrypted filesystem
+      # Mount the encrypted filesystem to the specified mount path
+      mount:
+        path: /mnt  # Replace with the desired mount path
+        src: "/dev/mapper/{{ root_crypt_name }}"
+        fstype: ext4  # Replace with the desired filesystem type
+        state: mounted
+
+    - name: Run pacstrap command
+      hosts: localhost
+      tasks:
+        - name: Run pacstrap
+          ansible.builtin.command: pacstrap /mnt base linux linux-firmware networkmanager neovim vim git sudo lvm2 iwd efibootmgr intel-ucode
+          become: true
+          become_user: root
 
     - name: Generate fstab
-      command: genfstab -U /mnt >> /mnt/etc/fstab
-      delegate_to: localhost
-      when: ansible_mounts[0].mount == '/'
+      command: genfstab /mnt >> /mnt/etc/fstab
+      become: true
+      become-user: root
 
-    - name: Mount boot partition
-      mount:
-        name: /dev/sda1  # Replace with the appropriate boot partition
-        mount: /mnt/boot
+    - name: Arch-chroot into target system
+      hosts: localhost
+      tasks:
+        - name: Arch-chroot
+          ansible.builtin.command: arch-chroot /mnt command_to_execute
+          become: true
+          become_user: root
 
-    - name: Set up timezone
-      timezone:
-        name: Etc/UTC
-        state: present
-      register: tz_result
-
-    - name: Set up hostname
-      hostname:
-        name: my_arch_server
-      register: hostname_result
-
-    - name: Update hosts file
+    - name: Configure mkinitcpio
       lineinfile:
-        dest: /mnt/etc/hosts
-        line: "127.0.0.1 localhost.localdomain localhost"
-        insertafter: "^::1"
-        state: present
-
-    - name: Set root password
-      user:
-        name: root
-        password: "{{ password | password_hash('sha512') }}"
-      register: root_password_result
-
-    - name: Create user
-      user:
-        name: "{{ username }}"
-        password: "{{ password | password_hash('sha512') }}"
-        createhome: yes
-        shell: /bin/bash
-        groups: wheel
-        append: yes
-      register: user_result
-
-    - name: Install and configure sudo
-      pacman:
-        name: sudo
-        state: present
-      notify: Update sudoers
-
-  handlers:
-    - name: Update sudoers
-      lineinfile:
-        dest: /mnt/etc/sudoers
-        line: "%wheel ALL=(ALL) ALL"
-        state: present
-        validate: visudo -cf %s
-
+        path: "/mnt/etc/mkinitcpio.conf"
+        regexp: "^HOOKS=(.*)"
+        line: 'HOOKS="{{ item.hooks }}"'
+      with_items:
+        - { hooks: "base systemd autodetect modconf kms keyboard sd-vconsole block sd-encrypt lvm2 filesystems fsck" }
+      become: true
+      become_user: root
+    # Additional tasks can be added for further configuration or customization
 
