@@ -24,13 +24,17 @@
         lv: "{{ root_lv }}"
         size: "{{ root_lv_size }}"
 
+
     - name: Set up dm-crypt on logical volume
-      # Set up dm-crypt encryption on the logical volume using the specified passphrase
-      command: echo "{{ passphrase }}" | cryptsetup luksFormat --type luks2 "/dev/{{ vg_name }}/{{ root_lv }}"
+      cryptsetup:
+        name: "{{ vg_name }}-crypt"
+        state: present
+        device: "/dev/{{ vg_name }}/{{ root_lv }}"
+        cipher: aes-xts-plain64
+        key_size: 512
+        passphrase: "{{ passphrase }}"
+      become: true
       become_user: root
-      become: yes
-      args:
-        stdin: yes
 
     - name: Open encrypted logical volume
       # Open the encrypted logical volume with the specified root_crypt_name and passphrase
