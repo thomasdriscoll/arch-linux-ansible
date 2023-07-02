@@ -26,8 +26,8 @@
 
 
     - name: Set up dm-crypt on logical volume
-      cryptsetup:
-        name: "{{ vg_name }}-crypt"
+      community.crypto.luks_device:
+        name: "{{ root_crypt_name }}"
         state: present
         device: "/dev/{{ vg_name }}/{{ root_lv }}"
         cipher: aes-xts-plain64
@@ -36,13 +36,14 @@
       become: true
       become_user: root
 
-    - name: Open encrypted logical volume
-      # Open the encrypted logical volume with the specified root_crypt_name and passphrase
-      command: echo "{{ passphrase }}" | cryptsetup luksOpen "/dev/{{ vg_name }}/{{ root_lv }}" "{{ root_crypt_name }}"
+    - name: Open LUKS-encrypted device
+      community.crypto.luks_open:
+        name: "{{ root_crypt_name }}"
+        device: "/dev/mapper/{{ vg_name }}-crypt"
+        passphrase: "{{ passphrase }}"
+        state: present
+      become: true
       become_user: root
-      become: yes
-      args:
-        stdin: yes
 
     - name: Create encrypted filesystem
       # Create a filesystem on the encrypted volume
