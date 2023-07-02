@@ -110,14 +110,47 @@
       become: true
       become_user: root
 
-    - name: arch-chroot
-      ansible.builtin.command: arch-chroot /mnt
+    - name: Set time zone
+      command: ln -sf /usr/share/zoneinfo/America/Chicago /etc/localtime
+      become: true
+      become_user: root
+
+    - name: Adjust hwclock
+      command: hwclock --systohc
+      become: true
+      become_user: root
+
+    - name: Uncomment localegen language
+      ansible.builtin.lineinfile:
+        path: /mnt/etc/locale.gen
+        regexp: '^#?(.*en_US\.UTF-8 UTF-8.*)$'
+        line: '\1'
+      become: true
+      become_user: root
+
+    - name: Generate locales
+      command: arch-chroot /mnt locale-gen
+      become: true
+      become_user: root
+
+    - name: Create locale.conf
+      command: echo "LANG=en_US.UTF-8" > /mnt/etc/locale.conf
+      become: true
+      become_user: root
+
+    - name: Set keyboard layout
+      command: echo -e "KEYMAP=us\nXKBLAYOUT=us" > /mnt/etc/vconsole.conf
+      become: true
+      become_user: root
+
+    - name: Create hostname
+      command: echo " {{ network-name }} " > /mnt/etc/hostname
       become: true
       become_user: root
 
     - name: configure mkinitcpio
       lineinfile:
-        path: "/etc/mkinitcpio.conf"
+        path: "/mnt/etc/mkinitcpio.conf"
         regexp: "^hooks=(.*)"
         line: 'hooks="{{ item.hooks }}"'
       with_items:
@@ -126,7 +159,7 @@
       become_user: root
 
     - name: Run mkinitcpio
-      command: mkinitcpio -P
+      command: arch-chroot /mnt mkinitcpio -P
       become: true
       become_user: root
     # Additional tasks can be added for further configuration or customization
