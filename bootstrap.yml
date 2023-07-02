@@ -70,28 +70,28 @@
       become: true
       become_user: root
 
-    - name: Create mount point
+    - name: run reflector
+      ansible.builtin.shell: reflector --country us --age 12 --protocol https --sort rate --save /etc/pacman.d/mirrorlist
+      become: true
+      become_user: root
+
+### mounting
+    - name: mount encrypted filesystem
+      # mount the encrypted filesystem to the specified mount path
+      mount:
+        path: /mnt  # replace with the desired mount path
+        src: "/dev/mapper/{{ root_crypt_name }}"
+        fstype: ext4  # replace with the desired filesystem type
+        state: mounted
+
+    - name: create mount point
       file:
         path: /mnt/boot
         state: directory
       become: true
       become_user: root
 
-    - name: Run reflector
-      ansible.builtin.shell: reflector --country US --age 12 --protocol https --sort rate --save /etc/pacman.d/mirrorlist
-      become: true
-      become_user: root
-
-### Mounting
-    - name: Mount encrypted filesystem
-      # Mount the encrypted filesystem to the specified mount path
-      mount:
-        path: /mnt  # Replace with the desired mount path
-        src: "/dev/mapper/{{ root_crypt_name }}"
-        fstype: ext4  # Replace with the desired filesystem type
-        state: mounted
-
-    - name: Mount boot partition
+    - name: mount boot partition
       mount:
         path: /mnt/boot
         src: /dev/sda1
@@ -100,26 +100,26 @@
       become: true
       become_user: root
 
-    - name: Run pacstrap
+    - name: run pacstrap
       ansible.builtin.command: pacstrap /mnt base linux linux-firmware networkmanager neovim vim git sudo lvm2 iwd efibootmgr intel-ucode
       become: true
       become_user: root
 
-    - name: Generate fstab
+    - name: generate fstab
       command: genfstab /mnt >> /mnt/etc/fstab
       become: true
       become_user: root
 
-    - name: Arch-chroot
+    - name: arch-chroot
       ansible.builtin.command: arch-chroot /mnt
       become: true
       become_user: root
 
-    - name: Configure mkinitcpio
+    - name: configure mkinitcpio
       lineinfile:
         path: "/etc/mkinitcpio.conf"
-        regexp: "^HOOKS=(.*)"
-        line: 'HOOKS="{{ item.hooks }}"'
+        regexp: "^hooks=(.*)"
+        line: 'hooks="{{ item.hooks }}"'
       with_items:
         - { hooks: "base systemd autodetect modconf kms keyboard sd-vconsole block sd-encrypt lvm2 filesystems fsck" }
       become: true
