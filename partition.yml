@@ -28,20 +28,10 @@
     - name: Set up dm-crypt on logical volume
       community.crypto.luks_device:
         name: "{{ root_crypt_name }}"
-        state: present
+        state: opened
         device: "/dev/{{ vg_name }}/{{ root_lv }}"
         cipher: aes-xts-plain64
-        key_size: 512
         passphrase: "{{ passphrase }}"
-      become: true
-      become_user: root
-
-    - name: Open LUKS-encrypted device
-      community.crypto.luks_open:
-        name: "{{ root_crypt_name }}"
-        device: "/dev/mapper/{{ vg_name }}-crypt"
-        passphrase: "{{ passphrase }}"
-        state: present
       become: true
       become_user: root
 
