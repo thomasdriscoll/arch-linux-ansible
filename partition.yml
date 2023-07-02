@@ -7,15 +7,29 @@
     - vars.yml
 
   tasks:
+
+    - name: Create partitions
+      parted:
+        device: /dev/sda
+        number: "{{ item.number }}"
+        state: present
+        part_end: "{{ item.part_end }}"
+        part_start: "{{ item.part_start }}"
+      with_items:
+        - { number: 1, part_start: 1MiB, part_end: 300MiB }
+        - { number: 2, part_start: 300MiB, part_end: "100%" }
+      become: true
+      become_user: root
+
     - name: Create physical volume
       # Create a physical volume on the specified disk
-      command: pvcreate "{{ disk }}"
+      command: pvcreate "{{ main_part }}"
 
     - name: Create volume group
       # Create a volume group using the physical volume
       lvg:
         vg: "{{ vg_name }}"
-        pvs: "{{ disk }}"
+        pvs: "{{ main_part }}"
 
     - name: Create logical volume for root
       # Create a logical volume within the volume group
@@ -53,5 +67,14 @@
         fstype: ext4  # Replace with the desired filesystem type
         state: mounted
 
+    - name: Configure mkinitcpio
+      lineinfile:
+        path: "/mnt/etc/mkinitcpio.conf"
+        regexp: "^HOOKS=(.*)"
+        line: 'HOOKS="{{ item.hooks }}"'
+      with_items:
+        - { hooks: "base systemd autodetect modconf kms keyboard sd-vconsole block sd-encrypt lvm2 filesystems fsck" }
+      become: true
+      become_user: root
     # Additional tasks can be added for further configuration or customization
 

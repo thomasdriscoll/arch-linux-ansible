@@ -1,4 +1,5 @@
-disk: /dev/sda  # Replace with the appropriate disk you want to set up LVM on
+boot_part: /dev/sda1
+main_part: /dev/sda2  # Replace with the appropriate disk you want to set up LVM on
 vg_name: MainVolGroup
 root_lv: cryptroot
 root_lv_size: 10%FREE
