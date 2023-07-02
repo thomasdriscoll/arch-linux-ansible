@@ -81,16 +81,8 @@
       ansible.builtin.shell: reflector --country US --age 12 --protocol https --sort rate --save /etc/pacman.d/mirrorlist
       become: true
       become_user: root
-### Mounting
-    - name: Mount partition
-      mount:
-        path: /mnt/boot
-        src: /dev/sda1
-        fstype: vfat
-        state: mounted
-      become: true
-      become_user: root
 
+### Mounting
     - name: Mount encrypted filesystem
       # Mount the encrypted filesystem to the specified mount path
       mount:
@@ -98,6 +90,15 @@
         src: "/dev/mapper/{{ root_crypt_name }}"
         fstype: ext4  # Replace with the desired filesystem type
         state: mounted
+
+    - name: Mount boot partition
+      mount:
+        path: /mnt/boot
+        src: /dev/sda1
+        fstype: vfat
+        state: mounted
+      become: true
+      become_user: root
 
     - name: Run pacstrap
       ansible.builtin.command: pacstrap /mnt base linux linux-firmware networkmanager neovim vim git sudo lvm2 iwd efibootmgr intel-ucode
