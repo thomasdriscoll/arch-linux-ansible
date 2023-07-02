@@ -77,13 +77,10 @@
       become: true
       become_user: root
 
-    - name: Run reflector command
-      hosts: localhost
-      tasks:
-        - name: Run reflector
-          ansible.builtin.command: reflector --country US --age 12 --sort rate --save /etc/pacman.d/mirrorlist
-          become: true
-          become_user: root
+    - name: Run reflector
+      ansible.builtin.shell: reflector --country US --age 12 --sort rate --save /etc/pacman.d/mirrorlist
+      become: true
+      become_user: root
 ### Mounting
     - name: Mount partition
       mount:
@@ -102,26 +99,20 @@
         fstype: ext4  # Replace with the desired filesystem type
         state: mounted
 
-    - name: Run pacstrap command
-      hosts: localhost
-      tasks:
-        - name: Run pacstrap
-          ansible.builtin.command: pacstrap /mnt base linux linux-firmware networkmanager neovim vim git sudo lvm2 iwd efibootmgr intel-ucode
-          become: true
-          become_user: root
+    - name: Run pacstrap
+      ansible.builtin.command: pacstrap /mnt base linux linux-firmware networkmanager neovim vim git sudo lvm2 iwd efibootmgr intel-ucode
+      become: true
+      become_user: root
 
     - name: Generate fstab
       command: genfstab /mnt >> /mnt/etc/fstab
       become: true
       become-user: root
 
-    - name: Arch-chroot into target system
-      hosts: localhost
-      tasks:
-        - name: Arch-chroot
-          ansible.builtin.command: arch-chroot /mnt command_to_execute
-          become: true
-          become_user: root
+    - name: Arch-chroot
+      ansible.builtin.command: arch-chroot /mnt command_to_execute
+      become: true
+      become_user: root
 
     - name: Configure mkinitcpio
       lineinfile:
