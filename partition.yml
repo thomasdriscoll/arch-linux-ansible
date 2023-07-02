@@ -21,9 +21,13 @@
       # Create a logical volume within the volume group
       lvol:
         vg: "{{ vg_name }}"
-        lv: "{{ root_lv }}"
-        size: "{{ root_lv_size }}"
-
+        lv: "{{ item.name }}"
+        size: "{{ item.size }}"
+      with_items:
+        - { name: "{{ root_lv }}", size: "{{ root_lv_size }}" }
+        - { name: "{{ swap_lv }}", size: "{{ swap_lv_size }}" }
+        - { name: "{{ tmp_lv }}", size: "{{ tmp_lv_size }}" }
+        - { name: "{{ home_lv }}", size: "{{ home_lv_size }}" }
 
     - name: Set up dm-crypt on logical volume
       community.crypto.luks_device:
