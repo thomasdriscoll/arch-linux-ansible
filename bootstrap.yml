@@ -78,7 +78,7 @@
       become_user: root
 
     - name: Run reflector command
-      hosts: your_target_hosts
+      hosts: localhost
       tasks:
         - name: Run reflector
           ansible.builtin.command: reflector --country US --age 12 --sort rate --save /etc/pacman.d/mirrorlist
