@@ -24,7 +24,7 @@
       # Create a physical volume on the specified disk
       command: pvcreate "{{ main_part }}"
       become: true
-      become_user: true
+      become_user: root
 
     - name: Create volume group
       # Create a volume group using the physical volume
@@ -61,7 +61,7 @@
         dev: "/dev/mapper/{{ root_crypt_name }}"
 
     - name: Zero out the boot partition
-      command: dd if=/dev/zero of=/dev/sda1 bs=1M status=progress
+      command: dd if=/dev/zero of=/dev/sda1 bs=1M count=299 status=progress
       become: true
       become_user: root
 
@@ -78,7 +78,7 @@
       become_user: root
 
     - name: Run reflector
-      ansible.builtin.shell: reflector --country US --age 12 --sort rate --save /etc/pacman.d/mirrorlist
+      ansible.builtin.shell: reflector --country US --age 12 --protocol https --sort rate --save /etc/pacman.d/mirrorlist
       become: true
       become_user: root
 ### Mounting
