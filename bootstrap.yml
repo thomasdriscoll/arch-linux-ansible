@@ -107,7 +107,7 @@
     - name: Generate fstab
       command: genfstab /mnt >> /mnt/etc/fstab
       become: true
-      become-user: root
+      become_user: root
 
     - name: Arch-chroot
       ansible.builtin.command: arch-chroot /mnt command_to_execute
