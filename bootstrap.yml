@@ -38,8 +38,7 @@
         part_end: "100%"
         part_start: 1MiB
       loop: "{{ ansible_facts.disk_devices.keys() }}"
-      loop_control:
-        index_start: 1
+      when: loop.index > 0
 
     - name: Create physical volumes
       command: pvcreate "{{ item }}"
@@ -131,22 +130,21 @@
       set_fact:
         microcode_package: "{{ 'intel-ucode' if ansible_processor[0] == 'Intel' else 'amd-ucode' }}"
 
-    - name: Install microcode update package
-      community.general.pacstrap:
-        target: /mnt
-        packages:
-          - base
-          - linux
-          - linux-firmware
-          - networkmanager
-          - neovim
-          - vim
-          - git
-          - sudo
-          - lvm2
-          - iwd
-          - efibootmgr
-          - "{{ microcode_package }}"
+    - name: Install packages using pacstrap
+      ansible.builtin.command: pacstrap /mnt {{ item }}
+      with_items:
+        - base
+        - linux
+        - linux-firmware
+        - networkmanager
+        - neovim
+        - vim
+        - git
+        - sudo
+        - lvm2
+        - iwd
+        - efibootmgr
+        - "{{ microcode_package }}"
       become: true
       become_user: root
 
