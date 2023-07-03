@@ -106,12 +106,12 @@
       become_user: root
 
     - name: generate fstab
-      command: genfstab /mnt >> /mnt/etc/fstab
+      shell: genfstab -U /mnt >> /mnt/etc/fstab
       become: true
       become_user: root
 
     - name: Set time zone
-      command: ln -sf /usr/share/zoneinfo/America/Chicago /etc/localtime
+      command: ln -sf /mnt/usr/share/zoneinfo/America/Chicago /mnt/etc/localtime
       become: true
       become_user: root
 
@@ -124,7 +124,7 @@
       ansible.builtin.lineinfile:
         path: /mnt/etc/locale.gen
         regexp: '^#?(.*en_US\.UTF-8 UTF-8.*)$'
-        line: '\1'
+        line: 'en_US.UTF-8 UTF-8'
       become: true
       become_user: root
 
@@ -134,17 +134,23 @@
       become_user: root
 
     - name: Create locale.conf
-      command: echo "LANG=en_US.UTF-8" > /mnt/etc/locale.conf
+      copy:
+        content: "LANG=en_US.UTF-8"
+        dest: /mnt/etc/locale.conf
       become: true
       become_user: root
 
     - name: Set keyboard layout
-      command: echo -e "KEYMAP=us\nXKBLAYOUT=us" > /mnt/etc/vconsole.conf
+      copy:
+        content: "KEYMAP=us\nXKBLAYOUT=us"
+        dest: /mnt/etc/vconsole.conf
       become: true
       become_user: root
 
     - name: Create hostname
-      command: echo " {{ network-name }} " > /mnt/etc/hostname
+      copy:
+        content: " {{ network_name }} "
+        dest: /mnt/etc/hostname
       become: true
       become_user: root
 
