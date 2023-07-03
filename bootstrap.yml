@@ -11,18 +11,19 @@
     - name: Gather disk facts
       setup:
 
-    - name: initialize empty list for devices
+    # manually set the list of devices
+    - name: initialize list for devices
       set_fact:
-        storage_devices: []
+        storage_devices:
+          - /dev/sda
       no_log: true
 
-    - name: get SATA and NVMe devices
+    - name: Name all the partitions
       set_fact:
-        storage_devices: "{{ storage_devices + ['/dev/' + item.key] }}"
-      no_log: true
-      with_dict: "{{ ansible_facts.devices }}"
-      when: "item.value.host.startswith('SATA controller:') or
-             item.value.host.startswith('Non-Volatile memory controller:')"
+        partitions:
+          - /dev/sda1
+          - /dev/sda2
+
 
     - name: Create boot partition
       parted:
@@ -32,8 +33,7 @@
         part_end: "{{ boot_partition_size }}"
         part_start: 1MiB
       loop: "{{ storage_devices }}"
-      register: boot_partition
-      changed_when: true
+      when: loop.index == 0
 
     - name: Create partition on boot disk
       parted:
@@ -43,8 +43,7 @@
         part_end: "100%"
         part_start: "{{ boot_partition_size }}"
       loop: "{{ storage_devices }}"
-      register: disk_one_partition
-      changed_when: true
+      when: loop.index > 0
 
     - name: Create remaining partitions
       parted:
@@ -54,16 +53,6 @@
         part_end: "100%"
         part_start: 1MiB
       loop: "{{ storage_devices[1:] }}"
-      register: remaining_partitions
-      changed_when: true
-
-    - set_fact:
-        partitions: "{{ partitions | default([]) + [item.ansible_facts.partitions['partitions'][0].number] }}"
-      loop: "{{ boot_partition.results + disk_one_partition.results + remaining_partitions.results }}"
-
-    - name: Show partition details
-      debug:
-        var: partitions
 
     - name: Create physical volumes
       command: pvcreate "{{ item }}"
