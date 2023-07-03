@@ -58,7 +58,7 @@
       changed_when: true
 
     - set_fact:
-        partitions: "{{ boot_partition.results + disk_one_partition.results + remaining_partitions.results }}"
+        partitions: "{{ partitions | default([]) + boot_partitions.results | map(attribute='item') | list + disk_one_partitions.results | map(attribute='item') | list + remaining_partitions.results | map(attribute='item') | list }}"
 
     - name: Show partition details
       debug:
