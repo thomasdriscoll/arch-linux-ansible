@@ -221,7 +221,7 @@
     - name: Create EFI Boot Entry
       ansible.builtin.template:
         src: templates/boot_script.j2
-        dest: /boot/efibootmgr_command.sh
+        dest: /mnt/boot/efibootmgr_command.sh
         mode: 0755
       vars:
         root_UUID: "{{ lookup('uuid', '/dev/mapper/{{ vg_name }}-{{ root_lv }}') }}"
@@ -231,6 +231,6 @@
       become_user: root
 
     - name: Execute the script file
-      ansible.builtin.command: /boot/efibootmgr_command.sh
+      ansible.builtin.command: arch-chroot /mnt /boot/efibootmgr_command.sh
       become: true
       become_user: root
