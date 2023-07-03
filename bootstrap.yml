@@ -11,6 +11,19 @@
     - name: Gather disk facts
       setup:
 
+    - name: initialize empty list for devices
+      set_fact:
+        storage_devices: []
+      no_log: true
+
+    - name: get SATA and NVMe devices
+      set_fact:
+        storage_devices: "{{ storage_devices + [item.key] }}"
+      no_log: true
+      with_dict: "{{ ansible_facts.devices }}"
+      when: "item.value.host.startswith('SATA controller:') or
+             item.value.host.startswith('Non-Volatile memory controller:')"
+
     - name: Create boot partition
       parted:
         device: "{{ item }}"
@@ -18,7 +31,9 @@
         state: present
         part_end: "{{ boot_partition_size }}"
         part_start: 1MiB
-      loop: "{{ ansible_facts.disk_devices.keys() }}"
+      loop: "{{ storage_devices }}"
+      register: partitions
+      changed_when: true
 
     - name: Create partition on boot disk
       parted:
@@ -27,8 +42,9 @@
         state: present
         part_end: "100%"
         part_start: "{{ boot_partition_size }}"
-      loop: "{{ ansible_facts.disk_devices.keys() }}"
-
+      loop: "{{ storage_devices }}"
+      register: partitions
+      changed_when: true
 
     - name: Create remaining partitions
       parted:
@@ -37,14 +53,21 @@
         state: present
         part_end: "100%"
         part_start: 1MiB
-      loop: "{{ ansible_facts.disk_devices.keys() }}"
+      loop: "{{ storage_devices }}"
       when: loop.index > 0
+      register: partitions
+      changed_when: true
+
+    - name: Show partition details
+      debug:
+        var: partitions
 
     - name: Create physical volumes
       command: pvcreate "{{ item }}"
       become: true
       become_user: root
-      loop: "{{ ansible_facts.disk_devices.values() | map(attribute='device') | list }}"
+      loop: "{{ partitions }}"
+      when: loop.index > 0
       register: pvcreate_output
 
     - name: Extract physical volume names
@@ -87,14 +110,18 @@
         dev: "{{ root_device }}"
 
     - name: Zero out the boot partition
-      command: dd if=/dev/zero of="{{ ansible_facts.disk_devices.keys() | first }}1" bs=1M count=299 status=progress
+      command: dd if=/dev/zero of="{{ item.device }}" bs=1M count=299 status=progress
       become: true
       become_user: root
+      loop: "{{ partitions }}"
+      when: loop.index == 0
 
     - name: Format partition as FAT32
-      command: mkfs.fat -F32 "{{ ansible_facts.disk_devices.keys() | first }}1"
+      command: mkfs.fat -F32 "{{ item.device }}"
       become: true
       become_user: root
+      loop: "{{ partitions }}"
+      when: loop.index == 0
 
     - name: run reflector
       ansible.builtin.shell: reflector --country us --age 12 --protocol https --sort rate --save /etc/pacman.d/mirrorlist
@@ -120,9 +147,11 @@
     - name: Mount boot partition
       mount:
         path: /mnt/boot
-        src: "{{ ansible_facts.disk_devices.keys() | first }}1"
+        src: "{{ item.device }}"
         fstype: vfat
         state: mounted
+      loop: "{{ partitions }}"
+      when: loop.index == 0
       become: true
       become_user: root
 
@@ -197,7 +226,7 @@
 
     - name: Create hostname
       copy:
-        content: " {{ network_name }} "
+        content: "{{ network_name }}"
         dest: /mnt/etc/hostname
       become: true
       become_user: root
