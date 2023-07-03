@@ -11,9 +11,6 @@ root_decrypt_name: root
 swap_decrypt_name: swap
 tmp_decrypt_name: tmp
 home_decrypt_name: home
-disk: /dev/sda
-boot_device: /dev/sda1
-bare_metal_device: /dev/sda2  # Replace with the appropriate disk you want to set up LVM on
 root_device: "/dev/mapper/{{ root_crypt_name }}"
 tmp_device: "/dev/mapper/{{ tmp_decrypt_name }}"
 swap_device: "/dev/mapper/{{ swap_decrypt_name }}"
