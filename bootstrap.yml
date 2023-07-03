@@ -151,11 +151,19 @@
       ansible.builtin.template:
         src: templates/fstab.j2
         dest: /mnt/etc/fstab
+      notify: Reload systemd
 
     - name: generate crypttab
       ansible.builtin.template:
         src: templates/crypttab.j2
         dest: /mnt/etc/crypttab
+      notify: Reload systemd
+
+
+    - name: Reload systemd within arch-chroot
+      ansible.builtin.command: "arch-chroot /mnt systemctl daemon-reload"
+      become: true
+      become_user: root
 
     - name: Set time zone
       command: ln -sf /mnt/usr/share/zoneinfo/America/Chicago /mnt/etc/localtime
