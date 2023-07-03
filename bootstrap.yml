@@ -1,36 +1,63 @@
 ---
 - name: Set up LVM with dm-crypt
   hosts: localhost
+  gather_facts: true
   become: yes
 
   vars_files:
     - vars.yml
 
   tasks:
-    - name: Create partitions
-      parted:
-        device: /dev/sda
-        number: "{{ item.number }}"
-        state: present
-        part_end: "{{ item.part_end }}"
-        part_start: "{{ item.part_start }}"
-      with_items:
-        - { number: 1, part_start: 1MiB, part_end: 300MiB }
-        - { number: 2, part_start: 300MiB, part_end: "100%" }
-      become: true
-      become_user: root
+    - name: Gather disk facts
+      setup:
 
-    - name: Create physical volume
-      # Create a physical volume on the specified disk
-      command: pvcreate "{{ main_part }}"
+    - name: Create boot partition
+      parted:
+        device: "{{ item }}"
+        number: 1
+        state: present
+        part_end: "{{ boot_partition_size }}"
+        part_start: 1MiB
+      loop: "{{ ansible_facts.disk_devices.keys() }}"
+
+    - name: Create partition on boot disk
+      parted:
+        device: "{{ item }}"
+        number: 2
+        state: present
+        part_end: "100%"
+        part_start: "{{ boot_partition_size }}"
+      loop: "{{ ansible_facts.disk_devices.keys() }}"
+
+
+    - name: Create remaining partitions
+      parted:
+        device: "{{ item }}"
+        number: 1
+        state: present
+        part_end: "100%"
+        part_start: 1MiB
+      loop: "{{ ansible_facts.disk_devices.keys() }}"
+      loop_control:
+        index_start: 1
+
+    - name: Create physical volumes
+      command: pvcreate "{{ item }}"
       become: true
       become_user: root
+      loop: "{{ ansible_facts.disk_devices.values() | map(attribute='device') | list }}"
+      register: pvcreate_output
+
+    - name: Extract physical volume names
+      set_fact:
+        vg_physical_volumes: "{{ pvcreate_output.results | map(attribute='cmd.args') | list }}"
 
     - name: Create volume group
-      # Create a volume group using the physical volume
       lvg:
         vg: "{{ vg_name }}"
-        pvs: "{{ main_part }}"
+        pvs: "{{ vg_physical_volumes }}"
+      become: true
+      become_user: root
 
     - name: Create logical volume for root
       # Create a logical volume within the volume group
@@ -58,15 +85,15 @@
       # Create a filesystem on the encrypted volume
       filesystem:
         fstype: ext4  # Replace with the desired filesystem type (e.g., ext4, xfs, etc.)
-        dev: "/dev/mapper/{{ root_crypt_name }}"
+        dev: "{{ root_device }}"
 
     - name: Zero out the boot partition
-      command: dd if=/dev/zero of=/dev/sda1 bs=1M count=299 status=progress
+      command: dd if=/dev/zero of={{ boot_device }} bs=1M count=299 status=progress
       become: true
       become_user: root
 
     - name: Format partition as fat32
-      command: mkfs.fat -F32 /dev/sda1
+      command: mkfs.fat -F32 {{ boot_device }}
       become: true
       become_user: root
 
@@ -80,7 +107,7 @@
       # mount the encrypted filesystem to the specified mount path
       mount:
         path: /mnt  # replace with the desired mount path
-        src: "/dev/mapper/{{ root_crypt_name }}"
+        src: "{{ root_device }}"
         fstype: ext4  # replace with the desired filesystem type
         state: mounted
 
@@ -91,24 +118,47 @@
       become: true
       become_user: root
 
-    - name: mount boot partition
+    - name: Mount boot partition
       mount:
         path: /mnt/boot
-        src: /dev/sda1
+        src: "{{ ansible_facts.disk_devices.keys() | first }}1"
         fstype: vfat
         state: mounted
       become: true
       become_user: root
 
-    - name: run pacstrap
-      ansible.builtin.command: pacstrap /mnt base linux linux-firmware networkmanager neovim vim git sudo lvm2 iwd efibootmgr intel-ucode
+    - name: Determine microcode update package
+      set_fact:
+        microcode_package: "{{ 'intel-ucode' if ansible_processor[0] == 'Intel' else 'amd-ucode' }}"
+
+    - name: Install microcode update package
+      community.general.pacstrap:
+        target: /mnt
+        packages:
+          - base
+          - linux
+          - linux-firmware
+          - networkmanager
+          - neovim
+          - vim
+          - git
+          - sudo
+          - lvm2
+          - iwd
+          - efibootmgr
+          - "{{ microcode_package }}"
       become: true
       become_user: root
 
     - name: generate fstab
-      shell: genfstab -U /mnt >> /mnt/etc/fstab
-      become: true
-      become_user: root
+      ansible.builtin.template:
+        src: templates/fstab.j2
+        dest: /mnt/etc/fstab
+
+    - name: generate crypttab
+      ansible.builtin.template:
+        src: templates/crypttab.j2
+        dest: /mnt/etc/crypttab
 
     - name: Set time zone
       command: ln -sf /mnt/usr/share/zoneinfo/America/Chicago /mnt/etc/localtime
