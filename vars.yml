@@ -20,4 +20,4 @@ swap_device: "/dev/mapper/{{ swap_decrypt_name }}"
 cryptswap_device: "/dev/{{ vg_name }}/{{ swap_lv }}"
 crypttmp_device: "/dev/{{ vg_name }}/{{ tmp_lv }}"
 passphrase:
-network-name:
+network_name:
