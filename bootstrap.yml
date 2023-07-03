@@ -152,22 +152,22 @@
         src: templates/fstab.j2
         dest: /mnt/etc/fstab
       vars:
-        root_device: "{{ root_device }}"
-        boot_device: "{{ partitions[0] }}"
-        tmp_device: "{{ tmp_device }}"
-        swap_device: "{{ swap_device }}"
+        _root_device: "{{ root_device }}"
+        _boot_device: "{{ partitions[0] }}"
+        _tmp_device: "{{ tmp_device }}"
+        _swap_device: "{{ swap_device }}"
 
     - name: generate crypttab
       ansible.builtin.template:
         src: templates/crypttab.j2
         dest: /mnt/etc/crypttab
       vars:
-        swap_decrypt_name: "{{ swap_decrypt_name }}"
-        tmp_decrypt_name: "{{ tmp_decrypt_name }}"
-        home_decrpt_name: "{{ home_decrypt_name }}"
-        cryptswap_device: "{{ cryptswap_device }}"
-        crypttmp_device: "{{ crypttmp_device }}"
-        crypthome_device: "{{ crypthome_device }}"
+        _swap_decrypt_name: "{{ swap_decrypt_name }}"
+        _tmp_decrypt_name: "{{ tmp_decrypt_name }}"
+        _home_decrpt_name: "{{ home_decrypt_name }}"
+        _cryptswap_device: "{{ cryptswap_device }}"
+        _crypttmp_device: "{{ crypttmp_device }}"
+        _crypthome_device: "{{ crypthome_device }}"
 
     - name: Set time zone
       command: ln -sf /mnt/usr/share/zoneinfo/America/Chicago /mnt/etc/localtime

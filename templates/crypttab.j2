@@ -1,3 +1,3 @@
-{{ swap_decrypt_name }}   {{ cryptswap_device }}	  /dev/urandom	        swap,cipher=aes-xts-plain64,size=256
-{{ tmp_decrypt_name }}	  {{ crypttmp_device }}	    /dev/urandom	        tmp,cipher=aes-xts-plain64,size=256
-{{ home_decrypt_name }}   {{ crypthome_device }}    /etc/luks-keys/home
+{{ _swap_decrypt_name }}   {{ _cryptswap_device }}	  /dev/urandom	        swap,cipher=aes-xts-plain64,size=256
+{{ _tmp_decrypt_name }}	  {{ _crypttmp_device }}	    /dev/urandom	        tmp,cipher=aes-xts-plain64,size=256
+{{ _home_decrypt_name }}   {{ _crypthome_device }}    /etc/luks-keys/home
