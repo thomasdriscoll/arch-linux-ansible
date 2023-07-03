@@ -143,8 +143,7 @@
         microcode_package: "{{ 'intel-ucode' if ansible_processor[0] == 'Intel' else 'amd-ucode' }}"
 
     - name: Install packages using pacstrap
-      ansible.builtin.shell: pacstrap /mnt {{ item }}
-      loop: "{{ arch_packages }}"
+      ansible.builtin.shell: "pacstrap /mnt {{ arch_packages | join(' ') }}"
       become: true
       become_user: root
 
@@ -217,6 +216,9 @@
       become: true
       become_user: root
     # Additional tasks can be added for further configuration or customization
+    - name: Get UUID of /dev/mapper/MainVolGroup-cryptroot
+      ansible.builtin.command: "blkid -s UUID -o value /dev/mapper/{{ vg_name }}-{{ root_lv }}"
+      register: uuid_output
 
     - name: Create EFI Boot Entry
       ansible.builtin.template:
@@ -224,7 +226,7 @@
         dest: /mnt/boot/efibootmgr_command.sh
         mode: 0755
       vars:
-        root_UUID: "{{ lookup('uuid', '/dev/mapper/{{ vg_name }}-{{ root_lv }}') }}"
+        root_UUID: "{{ uuid_output.stdout }}"
         microcode_package: "{{ microcode_package }}"
         boot_disk: "{{ storage_devices[0] }}"
       become: true
