@@ -88,12 +88,12 @@
         dev: "{{ root_device }}"
 
     - name: Zero out the boot partition
-      command: dd if=/dev/zero of={{ boot_device }} bs=1M count=299 status=progress
+      command: dd if=/dev/zero of="{{ ansible_facts.disk_devices.keys() | first }}1" bs=1M count=299 status=progress
       become: true
       become_user: root
 
-    - name: Format partition as fat32
-      command: mkfs.fat -F32 {{ boot_device }}
+    - name: Format partition as FAT32
+      command: mkfs.fat -F32 "{{ ansible_facts.disk_devices.keys() | first }}1"
       become: true
       become_user: root
 
