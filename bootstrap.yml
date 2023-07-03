@@ -27,23 +27,19 @@
 
     - name: Create boot partition
       parted:
-        device: "{{ item }}"
+        device: "{{ storage_devices[0] }}"
         number: 1
         state: present
         part_end: "{{ boot_partition_size }}"
         part_start: 1MiB
-      loop: "{{ storage_devices }}"
-      when: loop.index == 0
 
     - name: Create partition on boot disk
       parted:
-        device: "{{ item }}"
+        device: "{{ storage_devices[0] }}"
         number: 2
         state: present
         part_end: "100%"
         part_start: "{{ boot_partition_size }}"
-      loop: "{{ storage_devices }}"
-      when: loop.index > 0
 
     - name: Create remaining partitions
       parted:
@@ -63,7 +59,8 @@
 
     - name: Extract physical volume names
       set_fact:
-        vg_physical_volumes: "{{ pvcreate_output.results | map(attribute='cmd.args') | list }}"
+        vg_physical_volumes: "{{ item.item }}"
+      loop: "{{ pvcreate_output.results }}"
 
     - name: Create volume group
       lvg:
