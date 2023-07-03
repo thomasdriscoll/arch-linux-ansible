@@ -5,8 +5,8 @@
   become: yes
 
   vars_files:
-    - vars.yml
-    - arch-packages.yml
+    - variables/vars.yml
+    - variables/arch-packages.yml
 
   tasks:
     - name: Gather disk facts
@@ -218,3 +218,19 @@
       become_user: root
     # Additional tasks can be added for further configuration or customization
 
+    - name: Create EFI Boot Entry
+      ansible.builtin.template:
+        src: templates/boot_script.j2
+        dest: /boot/efibootmgr_command.sh
+        mode: 0755
+      vars:
+        root_UUID: "{{ lookup('uuid', '/dev/mapper/{{ vg_name }}-{{ root_lv }}') }}"
+        microcode_package: "{{ microcode_package }}"
+        boot_disk: "{{ storage_devices[0] }}"
+      become: true
+      become_user: root
+
+    - name: Execute the script file
+      ansible.builtin.command: /boot/efibootmgr_command.sh
+      become: true
+      become_user: root
