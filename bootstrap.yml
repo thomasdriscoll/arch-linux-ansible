@@ -6,6 +6,7 @@
 
   vars_files:
     - vars.yml
+    - arch-packages.yml
 
   tasks:
     - name: Gather disk facts
@@ -98,12 +99,12 @@
         dev: "{{ root_device }}"
 
     - name: Zero out the boot partition
-      command: dd if=/dev/zero of="{{ partitions[0].device }}" bs=1M count=299 status=progress
+      command: dd if=/dev/zero of="{{ partitions[0] }}" bs=1M count=299 status=progress
       become: true
       become_user: root
 
     - name: Format partition as FAT32
-      command: mkfs.fat -F32 "{{ partitions[0].device }}"
+      command: mkfs.fat -F32 "{{ partitions[0] }}"
       become: true
       become_user: root
 
@@ -131,7 +132,7 @@
     - name: Mount boot partition
       mount:
         path: /mnt/boot
-        src: "{{ partitions[0].device }}"
+        src: "{{ partitions[0] }}"
         fstype: vfat
         state: mounted
       become: true
@@ -142,20 +143,8 @@
         microcode_package: "{{ 'intel-ucode' if ansible_processor[0] == 'Intel' else 'amd-ucode' }}"
 
     - name: Install packages using pacstrap
-      ansible.builtin.command: pacstrap /mnt {{ item }}
-      with_items:
-        - base
-        - linux
-        - linux-firmware
-        - networkmanager
-        - neovim
-        - vim
-        - git
-        - sudo
-        - lvm2
-        - iwd
-        - efibootmgr
-        - "{{ microcode_package }}"
+      ansible.builtin.shell: pacstrap /mnt {{ item }}
+      loop: "{{ arch_packages }}"
       become: true
       become_user: root
 

@@ -1,0 +1,14 @@
+arch_packages:
+  - base
+  - linux
+  - linux-firmware
+  - networkmanager
+  - neovim
+  - vim
+  - git
+  - sudo
+  - lvm2
+  - iwd
+  - efibootmgr
+  - "{{ microcode_package }}"
+
