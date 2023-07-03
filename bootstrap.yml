@@ -83,7 +83,7 @@
 
     - name: Set up and open dm-crypt on logical volume
       community.crypto.luks_device:
-        name: "{{ root_crypt_name }}"
+        name: "{{ root_decrypt_name }}"
         state: opened
         device: "/dev/{{ vg_name }}/{{ root_lv }}"
         cipher: aes-xts-plain64
