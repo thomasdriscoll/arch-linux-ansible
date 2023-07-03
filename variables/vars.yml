@@ -15,7 +15,9 @@ boot_partition_size: 300MiB
 root_device: "/dev/mapper/{{ root_decrypt_name }}"
 tmp_device: "/dev/mapper/{{ tmp_decrypt_name }}"
 swap_device: "/dev/mapper/{{ swap_decrypt_name }}"
+home_device: "/dev/mapper/{{ home_decrypt_name }}"
 cryptswap_device: "/dev/{{ vg_name }}/{{ swap_lv }}"
 crypttmp_device: "/dev/{{ vg_name }}/{{ tmp_lv }}"
+crypthome_device: "/dev/{{ vg_name }}/{{ home_lv}}"
 passphrase:
 network_name:
