@@ -10,5 +10,6 @@ arch_packages:
   - lvm2
   - iwd
   - efibootmgr
+  - apparmor
   - "{{ microcode_package }}"
 

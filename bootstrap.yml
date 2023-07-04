@@ -253,8 +253,8 @@
     - name: configure mkinitcpio
       lineinfile:
         path: "/mnt/etc/mkinitcpio.conf"
-        regexp: "^hooks=(.*)"
-        line: 'hooks="{{ item.hooks }}"'
+        regexp: "^HOOKS=(.*)"
+        line: 'HOOKS="{{ item.hooks }}"'
       with_items:
         - { hooks: "base systemd autodetect modconf kms keyboard sd-vconsole block sd-encrypt lvm2 filesystems fsck" }
       become: true
@@ -286,6 +286,10 @@
       become: true
       become_user: root
 
+    - name: Systemd enable apparmor
+      ansible.builtin.command: arch-chroot /mnt systemctl enable apparmor
+      become: true
+      become_user: root
 
     - name: Chroot into the root partition
       command: arch-chroot /mnt /bin/bash -c "echo 'root:{{ root_password }}' | chpasswd"
