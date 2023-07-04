@@ -222,7 +222,7 @@
       become_user: root
 
     - name: Put random into home pass file
-      command: dd if=/dev/random of=/mnt/etc/luks-keys/home bs=1M count=256 status=progress
+      command: dd if=/dev/random of=/mnt/etc/luks-keys/home bs=1 count=256 status=progress
       become: true
       become_user: root
 
@@ -232,7 +232,7 @@
         state: opened
         device: "/dev/{{ vg_name }}/{{ home_lv }}"
         cipher: aes-xts-plain64
-        luks_key_file: /mnt/etc/luks-keys/home
+        keyfile: /mnt/etc/luks-keys/home
       become: true
       become_user: root
 
