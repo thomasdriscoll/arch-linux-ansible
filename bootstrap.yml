@@ -140,7 +140,7 @@
 
     - name: Determine microcode update package
       set_fact:
-        microcode_package: "{{ 'intel-ucode' if ansible_processor[0] == 'Intel' else 'amd-ucode' }}"
+        microcode_package: "{{ 'amd-ucode' if ansible_processor[0] == 'AMD' else 'intel-ucode' }}"
 
     - name: Install packages using pacstrap
       ansible.builtin.shell: "pacstrap /mnt {{ arch_packages | join(' ') }}"
@@ -228,7 +228,7 @@
 
     - name: set up and open dm-crypt for home volume
       community.crypto.luks_device:
-        name: "{{ home_decrypt_home }}"
+        name: "{{ home_decrypt_name }}"
         state: opened
         device: "/dev/{{ vg_name }}/{{ home_lv }}"
         cipher: aes-xts-plain64
