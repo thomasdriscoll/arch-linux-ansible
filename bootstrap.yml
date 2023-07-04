@@ -105,7 +105,7 @@
 
     - name: Format partition as FAT32
       filesystem:
-        fstype: fat32
+        fstype: vfat
         dev: "{{ partitions[0] }}"
 
     - name: run reflector
