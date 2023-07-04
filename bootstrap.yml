@@ -296,3 +296,8 @@
       changed_when: false
       become: true
       become_user: root
+
+    - name: Clone Arch-Linux repo
+      git:
+        repo: https://github.com/thomasdriscoll/arch-linux-ansible.git
+        dest: /mnt/root
