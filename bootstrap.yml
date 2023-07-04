@@ -286,13 +286,9 @@
       become: true
       become_user: root
 
-    - name: Set root password within arch-chroot
-      ansible.builtin.expect:
-        command: "arch-chroot /mnt passwd"
-        responses:
-          - prompt: password
-          - answer: "{{ root_password }}\n"
-          - prompt: password
-            answer: "{{ root_password }}\n"
+
+    - name: Chroot into the root partition
+      command: arch-chroot /mnt /bin/bash -c "echo 'root:{{ root_password }}' | chpasswd"
+      changed_when: false
       become: true
       become_user: root
