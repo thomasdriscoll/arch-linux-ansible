@@ -11,5 +11,6 @@ arch_packages:
   - iwd
   - efibootmgr
   - apparmor
+  - ansible
   - "{{ microcode_package }}"
 
