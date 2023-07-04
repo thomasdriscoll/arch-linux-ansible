@@ -106,9 +106,7 @@
     - name: Format partition as FAT32
       filesystem:
         fstype: fat32
-      command: mkfs.fat -F32 "{{ partitions[0] }}"
-      become: true
-      become_user: root
+        dev: "{{ partitions[0] }}"
 
     - name: run reflector
       ansible.builtin.shell: reflector --country us --age 12 --protocol https --sort rate --save /etc/pacman.d/mirrorlist
