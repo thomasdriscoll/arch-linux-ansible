@@ -20,4 +20,5 @@ cryptswap_device: "/dev/{{ vg_name }}/{{ swap_lv }}"
 crypttmp_device: "/dev/{{ vg_name }}/{{ tmp_lv }}"
 crypthome_device: "/dev/{{ vg_name }}/{{ home_lv}}"
 passphrase:
+root_password:
 network_name:

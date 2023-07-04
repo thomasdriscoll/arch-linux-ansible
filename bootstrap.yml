@@ -82,23 +82,23 @@
         - { name: "{{ tmp_lv }}", size: "{{ tmp_lv_size }}" }
         - { name: "{{ home_lv }}", size: "{{ home_lv_size }}" }
 
-    - name: Set up and open dm-crypt on logical volume
+    - name: set up and open dm-crypt on root volume
       community.crypto.luks_device:
         name: "{{ root_decrypt_name }}"
         state: opened
         device: "/dev/{{ vg_name }}/{{ root_lv }}"
         cipher: aes-xts-plain64
-        passphrase: "{{ passphrase }}"
+        passphrase: "{{ root_device_password }}"
       become: true
       become_user: root
 
-    - name: Create encrypted filesystem
-      # Create a filesystem on the encrypted volume
+    - name: create encrypted filesystem
+      # create a filesystem on the encrypted volume
       filesystem:
-        fstype: ext4  # Replace with the desired filesystem type (e.g., ext4, xfs, etc.)
+        fstype: ext4  # replace with the desired filesystem type (e.g., ext4, xfs, etc.)
         dev: "{{ root_device }}"
 
-    - name: Zero out the boot partition
+    - name: zero out the boot partition
       command: dd if=/dev/zero of="{{ partitions[0] }}" bs=1M count=299 status=progress
       become: true
       become_user: root
@@ -156,6 +156,7 @@
         _boot_device: "{{ partitions[0] }}"
         _tmp_device: "{{ tmp_device }}"
         _swap_device: "{{ swap_device }}"
+        _home_device: "{{ home_device }}"
 
     - name: generate crypttab
       ansible.builtin.template:
@@ -164,7 +165,7 @@
       vars:
         _swap_decrypt_name: "{{ swap_decrypt_name }}"
         _tmp_decrypt_name: "{{ tmp_decrypt_name }}"
-        _home_decrpt_name: "{{ home_decrypt_name }}"
+        _home_decrypt_name: "{{ home_decrypt_name }}"
         _cryptswap_device: "{{ cryptswap_device }}"
         _crypttmp_device: "{{ crypttmp_device }}"
         _crypthome_device: "{{ crypthome_device }}"
@@ -213,6 +214,42 @@
       become: true
       become_user: root
 
+    - name: create folder for home passfile
+      file:
+        path: /mnt/etc/luks-keys
+        state: directory
+      become: true
+      become_user: root
+
+    - name: Put random into home pass file
+      command: dd if=/dev/random of=/mnt/etc/luks-keys/home bs=1M count=256 status=progress
+      become: true
+      become_user: root
+
+    - name: set up and open dm-crypt for home volume
+      community.crypto.luks_device:
+        name: "{{ home_decrypt_home }}"
+        state: opened
+        device: "/dev/{{ vg_name }}/{{ home_lv }}"
+        cipher: aes-xts-plain64
+        luks_key_file: /mnt/etc/luks-keys/home
+      become: true
+      become_user: root
+
+    - name: create encrypted filesystem on home partition
+      # create a filesystem on the encrypted volume
+      filesystem:
+        fstype: ext4  # replace with the desired filesystem type (e.g., ext4, xfs, etc.)
+        dev: "{{ home_device }}"
+
+    - name: mount encrypted home filesystem
+      # mount the encrypted filesystem to the specified mount path
+      mount:
+        path: /mnt  # replace with the desired mount path
+        src: "{{ home_device }}"
+        fstype: ext4  # replace with the desired filesystem type
+        state: mounted
+
     - name: configure mkinitcpio
       lineinfile:
         path: "/mnt/etc/mkinitcpio.conf"
@@ -246,5 +283,16 @@
 
     - name: Execute the script file
       ansible.builtin.command: arch-chroot /mnt /boot/efibootmgr_command.sh
+      become: true
+      become_user: root
+
+    - name: Set root password within arch-chroot
+      ansible.builtin.expect:
+        command: "arch-chroot /mnt passwd"
+        responses:
+          - prompt: password
+          - answer: "{{ root_password }}\n"
+          - prompt: password
+            answer: "{{ root_password }}\n"
       become: true
       become_user: root
