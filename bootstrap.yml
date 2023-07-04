@@ -104,6 +104,8 @@
       become_user: root
 
     - name: Format partition as FAT32
+      filesystem:
+        fstype: fat32
       command: mkfs.fat -F32 "{{ partitions[0] }}"
       become: true
       become_user: root
@@ -254,7 +256,7 @@
       lineinfile:
         path: "/mnt/etc/mkinitcpio.conf"
         regexp: "^HOOKS=(.*)"
-        line: 'HOOKS="{{ item.hooks }}"'
+        line: 'HOOKS=({{ item.hooks }})'
       with_items:
         - { hooks: "base systemd autodetect modconf kms keyboard sd-vconsole block sd-encrypt lvm2 filesystems fsck" }
       become: true
