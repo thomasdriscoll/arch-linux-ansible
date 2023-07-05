@@ -14,16 +14,6 @@
       become_user: root
 
   ### Create and configure users and permissions
-    - name: Create users
-      user:
-        name: "{{ item.username }}"
-        password: "{{ item.password }}"
-        groups: "{{ item.groups }}"
-        shell: /bin/zsh
-      loop: "{{ users }}"
-      become: true
-      become_user: root
-
     - name: Configure users
       include_role:
         name: configure_user
