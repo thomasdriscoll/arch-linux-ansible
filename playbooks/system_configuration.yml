@@ -8,6 +8,10 @@
     - ../variables/users.yml
 
   tasks:
+    - name: Update pacman first
+      command: pacman -Syu --noconfirm
+      become: true
+      become_user: root
 
   ### Create and configure users and permissions
     - name: Create users
