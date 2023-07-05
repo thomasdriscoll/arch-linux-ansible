@@ -11,7 +11,7 @@
 
 - name: Clone dotfiles
   git:
-    repo: https://github.com/thomasdriscoll/arch-linux-ansible.git
+    repo: https://github.com/thomasdriscoll/dotfiles.git
     dest: "/home/{{ item.username }}/dotfiles"
     separate_git_dir: "~/.cfg"
   loop: "{{ users }}"
