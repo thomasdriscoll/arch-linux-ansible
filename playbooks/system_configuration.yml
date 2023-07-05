@@ -27,9 +27,6 @@
     - name: Configure users
       include_role:
         name: configure_user
-      vars:
-        _user: "{{ item.username }}"
-      loop: "{{ users }}"
 
     - name: Uncomment NOPASSWD for wheel group
       lineinfile:
