@@ -26,8 +26,6 @@
       vars:
         _user: "{{ item.username }}"
       loop: "{{ users }}"
-      become: true
-      become_user: root
 
     - name: Uncomment NOPASSWD for wheel group
       lineinfile:
