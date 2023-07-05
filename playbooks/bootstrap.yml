@@ -303,5 +303,5 @@
 
     - name: Clone Arch-Linux repo
       git:
-        repo: git@github.com:thomasdriscoll/arch-linux-ansible.git
+        repo: https://github.com/thomasdriscoll/arch-linux-ansible.git
         dest: /mnt/root/arch-linux-ansible
