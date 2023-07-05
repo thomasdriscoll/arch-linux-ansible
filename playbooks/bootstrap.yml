@@ -5,8 +5,8 @@
   become: yes
 
   vars_files:
-    - variables/bootstrap-vars.yml
-    - variables/pacstrap-packages.yml
+    - ../variables/bootstrap-vars.yml
+    - ../variables/pacstrap-packages.yml
 
   tasks:
     - name: Gather disk facts
@@ -303,5 +303,5 @@
 
     - name: Clone Arch-Linux repo
       git:
-        repo: https://github.com/thomasdriscoll/arch-linux-ansible.git
+        repo: git@github.com:thomasdriscoll/arch-linux-ansible.git
         dest: /mnt/root/arch-linux-ansible

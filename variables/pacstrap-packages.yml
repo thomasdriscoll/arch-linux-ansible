@@ -13,5 +13,6 @@ arch_packages:
   - apparmor
   - ansible
   - zsh
+  - ufw
   - "{{ microcode_package }}"
 
