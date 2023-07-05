@@ -9,9 +9,34 @@
   become: true
   become_user: root
 
+### Need to add SSH key
+- name: Generate OpenSSH key pair
+  openssh_keypair:
+    path: "/home/{{ item.username }}/.ssh/github"
+    type: rsa
+    size: 2048
+    state: present
+  register: ssh_keypair
+  loop: "{{ users }}"
+
+- name: Add public key to authorized_keys
+  authorized_key:
+    user: thomasdriscoll
+    key: "{{ ssh_keypair.public_key }}"
+
+### Being config cloning
+- name: Clone neovim-config
+  git:
+    repo: git@github.com:thomasdriscoll/neovim-config.git
+    dest: "/home/{{ item.username }}/.config/nvim"
+  loop: "{{ users }}"
+  become: true
+  become_user: "{{ item.username }}"
+
+
 - name: Clone dotfiles
   git:
-    repo: https://github.com/thomasdriscoll/dotfiles.git
+    repo: git@github.com:thomasdriscoll/dotfiles.git
     dest: "/home/{{ item.username }}/dotfiles"
     separate_git_dir: "~/.cfg"
   loop: "{{ users }}"
@@ -19,7 +44,7 @@
   become_user: "{{ item.username }}"
 
 - name: Move dotfiles to next level up
-  command: mv -f /home/{{ item.username }}/dotfiles/* /home/{{ item.username }}/
+  shell: mv -f /home/{{ item.username }}/dotfiles/* /home/{{ item.username }}/
   loop: "{{ users }}"
   become: true
   become_user: "{{ item.username }}"
