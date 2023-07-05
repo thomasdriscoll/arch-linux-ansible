@@ -1,0 +1,6 @@
+---
+- name: Clone dotfiles
+  git:
+    repo: git@github.com:thomasdriscoll/dotfiles.git
+    dest: "/home/{_user}"
+    separate_git_dir: "~/.cfg"
