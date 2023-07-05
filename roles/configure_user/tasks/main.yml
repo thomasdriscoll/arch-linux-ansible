@@ -12,7 +12,7 @@
 - name: Clone dotfiles
   git:
     repo: git@github.com:thomasdriscoll/dotfiles.git
-    dest: "/home/{{ item.username }"
+    dest: "/home/{{ item.username }}"
     separate_git_dir: "~/.cfg"
   loop: "{{ users }}"
   become: true
