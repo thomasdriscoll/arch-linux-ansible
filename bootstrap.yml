@@ -291,11 +291,14 @@
       become: true
       become_user: root
 
-    - name: Set root password and shell
-      user:
-        name: root
-        password: "{{ root_password }}"
-        shell: /bin/zsh
+    - name: Set root password
+      command: arch-chroot /mnt /bin/bash -c "echo 'root:{{ root_password }}' | chpasswd"
+      changed_when: false
+      become: true
+
+    - name: Set root shell
+      command: arch-chroot /mnt chsh -s /bin/zsh root
+      become: true
       become_user: root
 
     - name: Clone Arch-Linux repo
