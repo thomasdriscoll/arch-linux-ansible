@@ -12,5 +12,6 @@ arch_packages:
   - efibootmgr
   - apparmor
   - ansible
+  - zsh
   - "{{ microcode_package }}"
 

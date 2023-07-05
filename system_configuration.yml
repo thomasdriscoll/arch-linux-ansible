@@ -1,0 +1,17 @@
+---
+- name: Post-install system configuration
+  hosts: localhost
+  become: true
+
+  vars_files:
+    - variables/sys-config-vars.yml
+    - variables/users.yml
+
+  tasks:
+    - name: Create users
+      user:
+        name: "{{ item.username }}"
+        password: "{{ item.password }}"
+        groups: "{{ item.groups }}"
+        shell: /bin/zsh
+      loop: "{{ users }}"
