@@ -10,6 +10,14 @@
   become_user: root
 
 ### Need to add SSH key
+- name: Make .ssh folder
+  file:
+    path: "/home/{{ item.username }}/.ssh"
+    state: directory
+  become: true
+  become_user: "{{ item.username }}"
+  loop: "{{ users }}"
+
 - name: Generate OpenSSH key pair
   openssh_keypair:
     path: "/home/{{ item.username }}/.ssh/github"
