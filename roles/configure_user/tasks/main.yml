@@ -1,58 +1,52 @@
 ---
 - name: Create users
   user:
-    name: "{{ item.username }}"
-    password: "{{ item.password }}"
-    groups: "{{ item.groups }}"
+    name: "{{ _user.username }}"
+    password: "{{ _user.password }}"
+    groups: "{{ _user.groups }}"
     shell: /bin/zsh
-  loop: "{{ users }}"
   become: true
   become_user: root
 
 ### Need to add SSH key
 - name: Make .ssh folder
   file:
-    path: "/home/{{ item.username }}/.ssh"
+    path: "/home/{{ _user.username }}/.ssh"
     state: directory
   become: true
-  become_user: "{{ item.username }}"
-  loop: "{{ users }}"
+  become_user: "{{ _user.username }}"
 
 - name: Generate OpenSSH key pair
   openssh_keypair:
-    path: "/home/{{ item.username }}/.ssh/github"
+    path: "/home/{{ _user.username }}/.ssh/github"
     type: rsa
     size: 2048
     state: present
   register: ssh_keypair
-  loop: "{{ users }}"
+
 
 ### Being config cloning
 - name: Clone dotfiles
   git:
     repo: https://github.com/thomasdriscoll/dotfiles.git
-    dest: "/home/{{ item.username }}/dotfiles"
+    dest: "/home/{{ _user.username }}/dotfiles"
     separate_git_dir: "~/.cfg"
-  loop: "{{ users }}"
   become: true
-  become_user: "{{ item.username }}"
+  become_user: "{{ _user.username }}"
 
 - name: Clone neovim-config
   git:
     repo: https://github.com/thomasdriscoll/neovim-config.git
-    dest: "/home/{{ item.username }}/.config/nvim"
-  loop: "{{ users }}"
+    dest: "/home/{{ _user.username }}/.config/nvim"
   become: true
-  become_user: "{{ item.username }}"
+  become_user: "{{ _user.username }}"
 
 - name: Move dotfiles to next level up
-  shell: mv /home/{{ item.username }}/dotfiles/*(/D) /home/{{ item.username }}/
-  loop: "{{ users }}"
+  shell: mv /home/{{ _user.username }}/dotfiles/*(/D) /home/{{ _user.username }}/
   become: true
-  become_user: "{{ item.username }}"
+  become_user: "{{ _user.username }}"
 
 - name: Update Git working tree
-  command: git --git-dir=/home/{{ item.username }}/.cfg --work-tree=/home/{{ item.username }} config core.worktree /home/{{ item.username }}
-  loop: "{{ users }}"
+  command: git --git-dir=/home/{{ _user.username }}/.cfg --work-tree=/home/{{ _user.username }} config core.worktree /home/{{ _user.username }}
   become: true
-  become_user: "{{ item.username }}"
+  become_user: "{{ _user.username }}"
