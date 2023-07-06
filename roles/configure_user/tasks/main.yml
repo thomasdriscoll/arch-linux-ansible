@@ -39,7 +39,7 @@
   register: dotfiles_to_move
 
 - name: Move files to destination
-  command: mv "/home/thomas/dotfiles/{{ iterator }}" "/home/{{ _user.username }}/"
+  command: mv "/home/{{ _user.username }}/dotfiles/{{ iterator }}" "/home/{{ _user.username }}/"
   loop: "{{ dotfiles_to_move.stdout_lines[2:] }}"
   loop_control:
     loop_var: iterator
