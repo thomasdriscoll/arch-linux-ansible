@@ -14,5 +14,6 @@ arch_packages:
   - ansible
   - zsh
   - ufw
+  - openssh
   - "{{ microcode_package }}"
 

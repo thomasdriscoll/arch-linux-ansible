@@ -30,7 +30,13 @@
 - name: Add public key to authorized_keys
   authorized_key:
     user: thomasdriscoll
-    key: "{{ ssh_keypair.public_key }}"
+    key: "{{ ssh_keypair.public_key[0] }}"
+
+- name: ssh-add
+  shell: |
+    eval $(ssh-agent)
+    ssh-add /home/{{ ssh_keypair.public_key[0] }}
+  become: false
 
 ### Being config cloning
 - name: Clone neovim-config
