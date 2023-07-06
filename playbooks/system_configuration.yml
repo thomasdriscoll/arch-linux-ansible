@@ -41,19 +41,18 @@
         - { policy: 'deny', direction: 'incoming' }
         - { policy: 'allow', direction: 'outgoing' }
 
-    - name: Configure UFW Rules
+
+    - name: Manage UFW rules
       ufw:
-        policy: '{{ item.policy }}'
-        rule: '{{ item.rule }}'
-        state: '{{ item.state }}'
-      with_items:
-        - { policy: 'allow', rule: 'Deluge', state: 'enabled' }
-        - { policy: 'limit', rule: '22', limit: '{{ SSH_LIMIT }}', state: 'enabled' }
-        - { policy: 'allow', rule: '192.168.0.0/24', state: 'enabled' }
-        - { policy: 'limit', rule: 'SSH', limit: '{{ SSH_LIMIT }}', state: 'enabled' }
-        - { policy: 'allow', rule: 'Deluge (v6)', state: 'enabled', version: 'ipv6' }
-        - { policy: 'limit', rule: '22 (v6)', limit: '{{ SSH_LIMIT }}', state: 'enabled', version: 'ipv6' }
-        - { policy: 'limit', rule: 'SSH (v6)', limit: '{{ SSH_LIMIT }}', state: 'enabled', version: 'ipv6' }
+        rule: "{{ item.rule }}"
+        app: "{{ item.app }}"
+        from: "{{ item.from }}"
+      loop:
+        - { rule: allow, app: 'Deluge', from: 'Anywhere' }
+        - { rule: limit, app: 'SSH', from: 'Anywhere' }
+        - { rule: allow, app: 'deluge', from: 'Anywhere (v6)' }
+        - { rule: allow, app: 'SSH', from: 'Anywhere (v6)' }
+        - { rule: allow, app: 'any', from: '192.168.0.0/24' }
 
     - name: Enable UFW
       ufw:
