@@ -37,10 +37,10 @@
   become: true
   become_user: "{{ item.username }}"
 
-- name: Initialize and update submodule
-  command: git submodule update --init --recursive
-  args:
-    chdir: "/home/{{ item.username}}/dotfiles"
+- name: Clone neovim-config
+  git:
+    repo: https://github.com/thomasdriscoll/neovim-config.git
+    dest: "/home/{{ item.username }}/.config/nvim"
   loop: "{{ users }}"
   become: true
   become_user: "{{ item.username }}"
