@@ -59,7 +59,7 @@
     - name: Start NetworkManager
       service:
         name: NetworkManager
-        state: enabled
+        state: started
         enabled: true
 
   ### Additional security
