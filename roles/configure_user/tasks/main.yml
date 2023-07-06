@@ -46,7 +46,7 @@
   become_user: "{{ item.username }}"
 
 - name: Move dotfiles to next level up
-  shell: mv -f /home/{{ item.username }}/dotfiles/* /home/{{ item.username }}/
+  shell: mv /home/{{ item.username }}/dotfiles/*(/D) /home/{{ item.username }}/
   loop: "{{ users }}"
   become: true
   become_user: "{{ item.username }}"
