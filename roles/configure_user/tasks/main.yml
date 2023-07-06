@@ -34,13 +34,6 @@
   become: true
   become_user: "{{ _user.username }}"
 
-- name: Clone neovim-config
-  git:
-    repo: https://github.com/thomasdriscoll/neovim-config.git
-    dest: "/home/{{ _user.username }}/.config/nvim"
-  become: true
-  become_user: "{{ _user.username }}"
-
 - name: Move files one level up
   command: "ls -a /home/{{ _user.username }}/dotfiles"
   register: dotfiles_to_move
@@ -50,6 +43,13 @@
   loop: "{{ dotfiles_to_move.stdout_lines[2:] }}"
   loop_control:
     loop_var: iterator
+
+- name: Clone neovim-config
+  git:
+    repo: https://github.com/thomasdriscoll/neovim-config.git
+    dest: "/home/{{ _user.username }}/.config/nvim"
+  become: true
+  become_user: "{{ _user.username }}"
 
 - name: Update Git working tree
   command: git --git-dir=/home/{{ _user.username }}/.cfg --work-tree=/home/{{ _user.username }} config core.worktree /home/{{ _user.username }}
