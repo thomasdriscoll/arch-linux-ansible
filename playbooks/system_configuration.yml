@@ -18,7 +18,7 @@
       include_role:
         name: configure_user
       vars:
-        _user: "{{ item.user }}"
+        _user: "{{ item }}"
       loop: "{{ users }}"
 
     - name: Uncomment NOPASSWD for wheel group

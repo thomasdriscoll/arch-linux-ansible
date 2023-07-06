@@ -41,10 +41,16 @@
   become: true
   become_user: "{{ _user.username }}"
 
-- name: Move dotfiles to next level up
-  shell: mv /home/{{ _user.username }}/dotfiles/*(/D) /home/{{ _user.username }}/
-  become: true
-  become_user: "{{ _user.username }}"
+- name: Move files one level up
+  find:
+    paths: "/home/{{ _user.username }}/dotfiles"
+    patterns: "*"
+    file_type: any
+  register: files_to_move
+
+- name: Move files to destination
+  command: mv "{{ item.path }}" "/home/{{ _user.username }}/"
+  loop: "{{ files_to_move.files }}"
 
 - name: Update Git working tree
   command: git --git-dir=/home/{{ _user.username }}/.cfg --work-tree=/home/{{ _user.username }} config core.worktree /home/{{ _user.username }}
