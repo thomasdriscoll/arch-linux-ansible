@@ -41,18 +41,16 @@
         - { policy: 'deny', direction: 'incoming' }
         - { policy: 'allow', direction: 'outgoing' }
 
-
-    - name: Manage UFW rules
+    - name: Limit SSH
       ufw:
-        rule: "{{ item.rule }}"
-        app: "{{ item.app }}"
-        from: "{{ item.from }}"
-      loop:
-        - { rule: allow, app: 'Deluge', from: 'Anywhere' }
-        - { rule: limit, app: 'SSH', from: 'Anywhere' }
-        - { rule: allow, app: 'deluge', from: 'Anywhere (v6)' }
-        - { rule: allow, app: 'SSH', from: 'Anywhere (v6)' }
-        - { rule: allow, app: 'any', from: '192.168.0.0/24' }
+        rule: limit
+        port: ssh
+        proto: tcp
+
+    - name: Allow all access from LANs
+      ufw:
+        rule: allow
+        src: 192.168.0.0/24
 
     - name: Enable UFW
       ufw:
@@ -61,7 +59,7 @@
     - name: Start NetworkManager
       service:
         name: NetworkManager
-        state: started
+        state: enabled
         enabled: true
 
   ### Additional security
