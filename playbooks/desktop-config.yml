@@ -4,6 +4,9 @@
   become: true
   become_user: root
 
+  vars_files:
+    - ../variables/kde.yml
+
   tasks:
     - name: Update pacman
       command: pacman -Syu --noconfirm
