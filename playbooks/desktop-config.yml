@@ -1,0 +1,24 @@
+---
+- name: Desktop configuration
+  hosts: localhost
+  become: true
+  become_user: root
+
+  tasks:
+    - name: Update pacman
+      command: pacman -Syu --noconfirm
+
+    - name: Install Xorg environment
+      command: "pacman -S --noconfirm {{ xorg_packages | join(' ') }}"
+
+    - name: Install Plasma
+      command: pacman -S --noconfirm plasma
+
+    - name: Install SDDM
+      command: pacman -S sddm
+
+    - name: Enable SDDM
+      service:
+        name: sddm
+        state: stopped
+        enabled: true
