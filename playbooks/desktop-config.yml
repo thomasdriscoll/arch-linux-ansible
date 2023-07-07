@@ -9,7 +9,8 @@
       command: pacman -Syu --noconfirm
 
     - name: Install Xorg environment
-      command: "pacman -S --noconfirm {{ xorg_packages | join(' ') }}"
+      command: "pacman -S --noconfirm {{ item }}"
+      loop: "{{ xorg_packages }}"
 
     - name: Install Plasma
       command: pacman -S --noconfirm plasma
