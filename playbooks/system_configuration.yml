@@ -21,6 +21,10 @@
         _user: "{{ item }}"
       loop: "{{ users }}"
 
+    - name: Install essential initial packages
+      command: "pacman -S --noconfirm {{ item }}"
+      loop: "{{ essential_packages }}"
+
     - name: Uncomment NOPASSWD for wheel group
       lineinfile:
         path: /etc/sudoers

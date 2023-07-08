@@ -26,7 +26,3 @@
         name: sddm
         state: stopped
         enabled: true
-
-    - name: Install essential initial packages
-      command: "pacman -S --noconfirm {{ item }}"
-      loop: "{{ essential_packages }}"
