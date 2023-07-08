@@ -143,7 +143,7 @@
         microcode_package: "{{ 'amd-ucode' if ansible_processor[0] == 'AMD' else 'intel-ucode' }}"
 
     - name: Install packages using pacstrap
-      ansible.builtin.shell: "pacstrap /mnt {{ arch_packages | join(' ') }}"
+      ansible.builtin.shell: "pacstrap /mnt {{ pacstrap_packages | join(' ') }}"
       become: true
       become_user: root
 

@@ -1,4 +1,4 @@
-arch_packages:
+pacstrap_packages:
   - base
   - linux
   - linux-firmware
