@@ -291,6 +291,11 @@
       become: true
       become_user: root
 
+    - name: NetworkManager enable
+      command: arch-chroot /mnt systemctl enable NetworkManager
+      become: true
+      become_user: root
+
     - name: Set root password
       command: arch-chroot /mnt /bin/bash -c "echo 'root:{{ root_password }}' | chpasswd"
       changed_when: false
