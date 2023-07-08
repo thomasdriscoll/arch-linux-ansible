@@ -56,3 +56,24 @@
   command: git --git-dir=/home/{{ _user.username }}/.cfg --work-tree=/home/{{ _user.username }} config core.worktree /home/{{ _user.username }}
   become: true
   become_user: "{{ _user.username }}"
+
+- name: Add AUR ansible collection
+  command: ansible-galaxy collection install kewlfft.aur
+  become: true
+  become_user: "{{ _user.username }}"
+
+- name: create Projects directory
+  file:
+    path: "/home/{{ _user }}/Projects"
+    state: directory
+  become: true
+  become_user: "{{ _user.username }}"
+
+- name: delete dotfiles direcotry
+  file:
+    path: "/home/{{ _user }}/dotfiles"
+    state: absent
+  become: true
+  become_user: "{{ _user.username }}"
+
+

@@ -9,7 +9,9 @@
 
   tasks:
     - name: Update pacman first
-      command: pacman -Syu --noconfirm
+      community.general.pacman:
+        update_cache: true
+        upgrade: true
       become: true
       become_user: root
 

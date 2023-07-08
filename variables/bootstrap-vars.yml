@@ -42,5 +42,6 @@ pacstrap_packages:
   - zsh
   - ufw
   - openssh
+  - ansible
   - "{{ microcode_package }}"
 
