@@ -149,7 +149,7 @@
 
     - name: generate fstab
       ansible.builtin.template:
-        src: templates/fstab.j2
+        src: ../templates/fstab.j2
         dest: /mnt/etc/fstab
       vars:
         _root_device: "{{ root_device }}"
@@ -160,7 +160,7 @@
 
     - name: generate crypttab
       ansible.builtin.template:
-        src: templates/crypttab.j2
+        src: ../templates/crypttab.j2
         dest: /mnt/etc/crypttab
       vars:
         _swap_decrypt_name: "{{ swap_decrypt_name }}"
@@ -271,7 +271,7 @@
 
     - name: Create EFI Boot Entry
       ansible.builtin.template:
-        src: templates/boot_script.j2
+        src: ../templates/boot_script.j2
         dest: /mnt/boot/efibootmgr_command.sh
         mode: 0755
       vars:
