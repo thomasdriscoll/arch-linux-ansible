@@ -18,8 +18,8 @@
     - name: Install Plasma
       command: pacman -S --noconfirm plasma
 
-    - name: Install SDDM
-      command: pacman -S sddm
+    - name: Install Display Manager (SDDM)
+      command: pacman -S --noconfirm sddm
 
     - name: Enable SDDM
       service:
