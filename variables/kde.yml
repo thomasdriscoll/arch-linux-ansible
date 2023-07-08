@@ -1,4 +1,4 @@
-kde_packages:
+xorg_packages:
   - xorg-server
   - xorg-xinit
   - xorg-twm
