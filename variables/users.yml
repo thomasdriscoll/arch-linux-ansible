@@ -7,7 +7,7 @@ users:
     password:
     groups:
       - wheel
-  - username: ansible-user
+  - username: ansible
     password:
     groups:
       - users

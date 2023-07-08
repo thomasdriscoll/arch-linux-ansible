@@ -5,3 +5,8 @@ xorg_packages:
   - xorg-xclock
   - xterm
   - libxkbcommon
+
+essential_packages:
+  - cmake
+  - make
+  - gcc
