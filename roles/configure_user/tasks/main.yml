@@ -5,6 +5,7 @@
     password: "{{ _user.password }}"
     groups: "{{ _user.groups }}"
     shell: /bin/zsh
+    update_password: never
   become: true
   become_user: root
 
