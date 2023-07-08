@@ -24,7 +24,7 @@ disk list in playbooks/bootstrap.yml
 the git project
 
 ## System configuration
-- In variables/sys-config-vars.yml
+- In variables/users.yml
     - Add all desired users on the system
     - Make sure to include their passwords and at least all fields in the
     examples provided

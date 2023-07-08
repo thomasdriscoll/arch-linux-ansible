@@ -1,8 +1,13 @@
 ---
+
+- name: Generate hashed password
+  ansible.builtin.set_fact:
+    hashed_password: "{{ lookup('{{ _user.password }}', '/dev/null', 'password_hash', 'sha512') }}"
+
 - name: Create users
   user:
     name: "{{ _user.username }}"
-    password: "{{ _user.password }}"
+    password: "{{ hashed_password }}"
     groups: "{{ _user.groups }}"
     shell: /bin/zsh
     update_password: on_create
