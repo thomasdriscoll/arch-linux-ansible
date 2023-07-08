@@ -6,7 +6,6 @@
 
   vars_files:
     - ../variables/bootstrap-vars.yml
-    - ../variables/pacstrap-packages.yml
 
   tasks:
     - name: Gather disk facts
@@ -99,7 +98,7 @@
         dev: "{{ root_device }}"
 
     - name: zero out the boot partition
-      command: dd if=/dev/zero of="{{ partitions[0] }}" bs=1M count=299 status=progress
+      command: "dd if=/dev/zero of={{ partitions[0] }} bs=1M count=299 status=progress"
       become: true
       become_user: root
 
