@@ -3,6 +3,7 @@ pacstrap_packages:
   - linux
   - linux-firmware
   - networkmanager
+  - iwd
   - neovim
   - vim
   - git
