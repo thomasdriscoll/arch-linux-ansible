@@ -26,3 +26,7 @@
         name: sddm
         state: stopped
         enabled: true
+
+    - name: Install additional packages
+      command: "pacman -S --noconfirm {{ item }}"
+      loop: "{{ desktop_packages }}"

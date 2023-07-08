@@ -5,3 +5,7 @@ xorg_packages:
   - xorg-xclock
   - xterm
   - libxkbcommon
+  - i3-wm
+
+desktop_packages:
+  - terminator
