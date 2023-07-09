@@ -9,24 +9,30 @@
 
   tasks:
     - name: Update pacman
-      command: pacman -Syu --noconfirm
+      ansible.builtin.command: pacman -Syu --noconfirm
+      changed_when: true
 
     - name: Install Xorg environment
-      command: "pacman -S --noconfirm {{ item }}"
+      ansible.builtin.command: "pacman -S --noconfirm {{ item }}"
       loop: "{{ xorg_packages }}"
+      changed_when: true
 
     - name: Install Plasma
-      command: pacman -S --noconfirm plasma
+      ansible.builtin.command: pacman -S --noconfirm plasma
+      changed_when: true
 
     - name: Install Display Manager (SDDM)
-      command: pacman -S --noconfirm sddm
+      ansible.builtin.command: pacman -S --noconfirm sddm
+      changed_when: true
 
     - name: Enable SDDM
-      service:
+      ansible.builtin.service:
         name: sddm
         state: stopped
         enabled: true
+      changed_when: true
 
     - name: Install additional packages
-      command: "pacman -S --noconfirm {{ item }}"
+      ansible.builtin.command: "pacman -S --noconfirm {{ item }}"
       loop: "{{ desktop_packages }}"
+      changed_when: true
