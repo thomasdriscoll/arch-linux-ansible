@@ -126,7 +126,8 @@
       ansible.builtin.file:
         path: /mnt/boot
         state: directory
-
+        # rwx r-x r-x = 4+2+1 4+0+1 4+0+1 = 7 5 5
+        mode: "0755"
       become: true
       become_user: root
 
@@ -153,6 +154,8 @@
       ansible.builtin.template:
         src: fstab.j2
         dest: /mnt/etc/fstab
+        # rw- r-- r-- = 4+2+0 4+0+0 4+0+0 = 6 4 4
+        mode: "0644"
       vars:
         _root_device: "{{ root_device }}"
         _boot_device: "{{ partitions[0] }}"
@@ -164,6 +167,8 @@
       ansible.builtin.template:
         src: crypttab.j2
         dest: /mnt/etc/crypttab
+        # rw- --- --- = 4+2+0 0+0+0 0+0+0 = 6 0 0
+        mode: "0600"
       vars:
         _swap_decrypt_name: "{{ swap_decrypt_name }}"
         _tmp_decrypt_name: "{{ tmp_decrypt_name }}"
@@ -226,6 +231,8 @@
       ansible.builtin.file:
         path: /mnt/etc/luks-keys
         state: directory
+        # d rwx --- --- --- = 0 7 0 0
+        mode: "0700"
       become: true
       become_user: root
 
