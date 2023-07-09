@@ -1,0 +1,5 @@
+SSH_LIMIT: 6
+essential_packages:
+  - cmake
+  - make
+  - gcc

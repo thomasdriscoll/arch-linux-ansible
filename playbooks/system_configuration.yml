@@ -4,8 +4,8 @@
   become: true
 
   vars_files:
-    - ../variables/sys-config-vars.yml
-    - ../variables/users.yml
+    - ./variables/sys-config-vars.yml
+    - ./variables/users.yml
 
   tasks:
     - name: Update pacman first
@@ -15,7 +15,7 @@
       become: true
       become_user: root
 
-  ### Create and configure users and permissions
+    # Create and configure users and permissions
     - name: Configure users
       include_role:
         name: configure_user
@@ -32,20 +32,20 @@
         path: /etc/sudoers
         regex: '^%wheel\s+ALL=\(ALL\)\s+NOPASSWD: ALL$'
         line: '%wheel ALL=(ALL) NOPASSWD: ALL'
-        backup: yes
+        backup: true
         state: present
         validate: 'visudo -cf %s'
       become: true
       become_user: root
 
-  ### Set firewall rules
+    # Set firewall rules
     - name: Configure UFW Default Policies
       ufw:
         policy: '{{ item.policy }}'
         direction: '{{ item.direction }}'
       with_items:
-        - { policy: 'deny', direction: 'incoming' }
-        - { policy: 'allow', direction: 'outgoing' }
+        - {policy: 'deny', direction: 'incoming'}
+        - {policy: 'allow', direction: 'outgoing'}
 
     - name: Limit SSH
       ufw:
@@ -68,7 +68,7 @@
         state: started
         enabled: true
 
-  ### Additional security
+    # Additional security
     - name: Start AppArmor service
       service:
         name: apparmor

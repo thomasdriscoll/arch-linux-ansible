@@ -1,0 +1,47 @@
+vg_name: MainVolGroup
+root_lv: cryptroot
+root_lv_size: 10%FREE
+swap_lv: cryptswap
+swap_lv_size: 500M
+tmp_lv: crypttmp
+tmp_lv_size: 500M
+home_lv: crypthome
+home_lv_size: 100%FREE
+root_decrypt_name: root
+swap_decrypt_name: swap
+tmp_decrypt_name: tmp
+home_decrypt_name: home
+boot_partition_size: 300MiB
+root_device: "/dev/mapper/{{ root_decrypt_name }}"
+tmp_device: "/dev/mapper/{{ tmp_decrypt_name }}"
+swap_device: "/dev/mapper/{{ swap_decrypt_name }}"
+home_device: "/dev/mapper/{{ home_decrypt_name }}"
+cryptswap_device: "/dev/{{ vg_name }}/{{ swap_lv }}"
+crypttmp_device: "/dev/{{ vg_name }}/{{ tmp_lv }}"
+crypthome_device: "/dev/{{ vg_name }}/{{ home_lv}}"
+root_device_password:
+root_password:
+network_name:
+
+### Pacstrap packages
+pacstrap_packages:
+  - base
+  - linux
+  - linux-firmware
+  - networkmanager
+  - iwd
+  - neovim
+  - vim
+  - git
+  - sudo
+  - lvm2
+  - iwd
+  - efibootmgr
+  - apparmor
+  - ansible
+  - zsh
+  - ufw
+  - openssh
+  - ansible
+  - "{{ microcode_package }}"
+

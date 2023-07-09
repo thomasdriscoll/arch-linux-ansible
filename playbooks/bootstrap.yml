@@ -2,31 +2,29 @@
 - name: Set up LVM with dm-crypt
   hosts: localhost
   gather_facts: true
-  become: yes
+  become: true
 
   vars_files:
-    - ../variables/bootstrap-vars.yml
+    - ./variables/bootstrap-vars.yml
 
   tasks:
     - name: Gather disk facts
-      setup:
-
+      ansible.builtin.setup:
     # manually set the list of devices
-    - name: initialize list for devices
-      set_fact:
+    - name: Initialize list for devices
+      ansible.builtin.set_fact:
         storage_devices:
           - /dev/sda
       no_log: true
 
     - name: Name all the partitions
-      set_fact:
+      ansible.builtin.set_fact:
         partitions:
           - /dev/sda1
           - /dev/sda2
 
-
     - name: Create boot partition
-      parted:
+      community.general.parted:
         device: "{{ storage_devices[0] }}"
         number: 1
         state: present
@@ -34,36 +32,37 @@
         part_start: 1MiB
 
     - name: Create partition on boot disk
-      parted:
+      community.general.parted:
         device: "{{ storage_devices[0] }}"
         number: 2
         state: present
-        part_end: "100%"
+        part_end: 100%
         part_start: "{{ boot_partition_size }}"
 
     - name: Create remaining partitions
-      parted:
+      community.general.parted:
         device: "{{ item }}"
         number: 1
         state: present
-        part_end: "100%"
+        part_end: 100%
         part_start: 1MiB
       loop: "{{ storage_devices[1:] }}"
 
     - name: Create physical volumes
-      command: pvcreate "{{ item }}"
+      ansible.builtin.command: pvcreate "{{ item }}"
       become: true
       become_user: root
+      changed_when: true
       loop: "{{ partitions[1:] }}"
       register: pvcreate_output
 
     - name: Extract physical volume names
-      set_fact:
+      ansible.builtin.set_fact:
         vg_physical_volumes: "{{ item.item }}"
       loop: "{{ pvcreate_output.results }}"
 
     - name: Create volume group
-      lvg:
+      community.general.lvg:
         vg: "{{ vg_name }}"
         pvs: "{{ vg_physical_volumes }}"
       become: true
@@ -71,7 +70,7 @@
 
     - name: Create logical volume for root
       # Create a logical volume within the volume group
-      lvol:
+      community.general.lvol:
         vg: "{{ vg_name }}"
         lv: "{{ item.name }}"
         size: "{{ item.size }}"
@@ -81,55 +80,58 @@
         - { name: "{{ tmp_lv }}", size: "{{ tmp_lv_size }}" }
         - { name: "{{ home_lv }}", size: "{{ home_lv_size }}" }
 
-    - name: set up and open dm-crypt on root volume
+    - name: Set up and open dm-crypt on root volume
       community.crypto.luks_device:
         name: "{{ root_decrypt_name }}"
         state: opened
-        device: "/dev/{{ vg_name }}/{{ root_lv }}"
+        device: /dev/{{ vg_name }}/{{ root_lv }}
         cipher: aes-xts-plain64
         passphrase: "{{ root_device_password }}"
       become: true
       become_user: root
 
-    - name: create encrypted filesystem
+    - name: Create encrypted filesystem
       # create a filesystem on the encrypted volume
-      filesystem:
-        fstype: ext4  # replace with the desired filesystem type (e.g., ext4, xfs, etc.)
+      community.general.filesystem:
+        fstype: ext4
         dev: "{{ root_device }}"
 
-    - name: zero out the boot partition
-      command: "dd if=/dev/zero of={{ partitions[0] }} bs=1M count=299 status=progress"
+    - name: Zero out the boot partition
+      ansible.builtin.command: dd if=/dev/zero of={{ partitions[0] }} bs=1M count=299 status=progress
       become: true
       become_user: root
+      changed_when: true
 
     - name: Format partition as FAT32
-      filesystem:
+      community.general.filesystem:
         fstype: vfat
         dev: "{{ partitions[0] }}"
 
-    - name: run reflector
-      ansible.builtin.shell: reflector --country us --age 12 --protocol https --sort rate --save /etc/pacman.d/mirrorlist
+    - name: Run reflector
+      ansible.builtin.command: reflector --country us --age 12 --protocol https --sort rate --save /etc/pacman.d/mirrorlist
       become: true
       become_user: root
+      changed_when: true
 
-### mounting
-    - name: mount encrypted filesystem
+    ### mounting
+    - name: Mount encrypted filesystem
       # mount the encrypted filesystem to the specified mount path
-      mount:
-        path: /mnt  # replace with the desired mount path
+      ansible.posix.mount:
+        path: /mnt # replace with the desired mount path
         src: "{{ root_device }}"
-        fstype: ext4  # replace with the desired filesystem type
+        fstype: ext4 # replace with the desired filesystem type
         state: mounted
 
-    - name: create mount point
-      file:
+    - name: Create mount point
+      ansible.builtin.file:
         path: /mnt/boot
         state: directory
+
       become: true
       become_user: root
 
     - name: Mount boot partition
-      mount:
+      ansible.posix.mount:
         path: /mnt/boot
         src: "{{ partitions[0] }}"
         fstype: vfat
@@ -138,17 +140,18 @@
       become_user: root
 
     - name: Determine microcode update package
-      set_fact:
+      ansible.builtin.set_fact:
         microcode_package: "{{ 'amd-ucode' if ansible_processor[0] == 'AMD' else 'intel-ucode' }}"
 
     - name: Install packages using pacstrap
-      ansible.builtin.shell: "pacstrap /mnt {{ pacstrap_packages | join(' ') }}"
+      ansible.builtin.command: "pacstrap /mnt {{ pacstrap_packages | join(' ') }}"
       become: true
       become_user: root
+      changed_when: true
 
-    - name: generate fstab
+    - name: Generate fstab
       ansible.builtin.template:
-        src: ../templates/fstab.j2
+        src: fstab.j2
         dest: /mnt/etc/fstab
       vars:
         _root_device: "{{ root_device }}"
@@ -157,9 +160,9 @@
         _swap_device: "{{ swap_device }}"
         _home_device: "{{ home_device }}"
 
-    - name: generate crypttab
+    - name: Generate crypttab
       ansible.builtin.template:
-        src: ../templates/crypttab.j2
+        src: crypttab.j2
         dest: /mnt/etc/crypttab
       vars:
         _swap_decrypt_name: "{{ swap_decrypt_name }}"
@@ -170,112 +173,123 @@
         _crypthome_device: "{{ crypthome_device }}"
 
     - name: Set time zone
-      command: ln -sf /mnt/usr/share/zoneinfo/America/Chicago /mnt/etc/localtime
+      ansible.builtin.command: ln -sf /mnt/usr/share/zoneinfo/America/Chicago /mnt/etc/localtime
       become: true
       become_user: root
+      changed_when: true
 
     - name: Adjust hwclock
-      command: hwclock --systohc
+      ansible.builtin.command: hwclock --systohc
       become: true
       become_user: root
+      changed_when: true
 
     - name: Uncomment localegen language
       ansible.builtin.lineinfile:
         path: /mnt/etc/locale.gen
-        regexp: '^#?(.*en_US\.UTF-8 UTF-8.*)$'
-        line: 'en_US.UTF-8 UTF-8'
+        regexp: ^#?(.*en_US\.UTF-8 UTF-8.*)$
+        line: en_US.UTF-8 UTF-8
       become: true
       become_user: root
 
     - name: Generate locales
-      command: arch-chroot /mnt locale-gen
+      ansible.builtin.command: arch-chroot /mnt locale-gen
       become: true
       become_user: root
+      changed_when: true
 
     - name: Create locale.conf
-      copy:
-        content: "LANG=en_US.UTF-8"
+      ansible.builtin.copy:
+        content: LANG=en_US.UTF-8
         dest: /mnt/etc/locale.conf
+        mode: preserve
       become: true
       become_user: root
 
     - name: Set keyboard layout
-      copy:
+      ansible.builtin.copy:
         content: "KEYMAP=us\nXKBLAYOUT=us"
         dest: /mnt/etc/vconsole.conf
+        mode: preserve
       become: true
       become_user: root
 
     - name: Create hostname
-      copy:
+      ansible.builtin.copy:
         content: "{{ network_name }}"
         dest: /mnt/etc/hostname
+        mode: preserve
       become: true
       become_user: root
 
-    - name: create folder for home passfile
-      file:
+    - name: Create folder for home passfile
+      ansible.builtin.file:
         path: /mnt/etc/luks-keys
         state: directory
       become: true
       become_user: root
 
     - name: Put random into home pass file
-      command: dd if=/dev/random of=/mnt/etc/luks-keys/home bs=1 count=256 status=progress
+      ansible.builtin.command: dd if=/dev/random of=/mnt/etc/luks-keys/home bs=1 count=256 status=progress
       become: true
       become_user: root
+      changed_when: true
 
-    - name: set up and open dm-crypt for home volume
+    - name: Set up and open dm-crypt for home volume
       community.crypto.luks_device:
         name: "{{ home_decrypt_name }}"
         state: opened
-        device: "/dev/{{ vg_name }}/{{ home_lv }}"
+        device: /dev/{{ vg_name }}/{{ home_lv }}
         cipher: aes-xts-plain64
         keyfile: /mnt/etc/luks-keys/home
       become: true
       become_user: root
 
-    - name: create encrypted filesystem on home partition
+    - name: Create encrypted filesystem on home partition
       # create a filesystem on the encrypted volume
-      filesystem:
-        fstype: ext4  # replace with the desired filesystem type (e.g., ext4, xfs, etc.)
+      community.general.filesystem:
+        fstype: ext4
         dev: "{{ home_device }}"
 
-    - name: mount encrypted home filesystem
+    - name: Mount encrypted home filesystem
       # mount the encrypted filesystem to the specified mount path
-      mount:
-        path: /mnt  # replace with the desired mount path
+      ansible.posix.mount:
+        path: /mnt
         src: "{{ home_device }}"
-        fstype: ext4  # replace with the desired filesystem type
+        fstype: ext4
         state: mounted
 
-    - name: configure mkinitcpio
-      lineinfile:
-        path: "/mnt/etc/mkinitcpio.conf"
-        regexp: "^HOOKS=(.*)"
-        line: 'HOOKS=({{ item.hooks }})'
+    - name: Configure mkinitcpio
+      ansible.builtin.lineinfile:
+        path: /mnt/etc/mkinitcpio.conf
+        regexp: ^HOOKS=(.*)
+        line: HOOKS=({{ item.hooks }})
       with_items:
-        - { hooks: "base systemd autodetect modconf kms keyboard sd-vconsole block sd-encrypt lvm2 filesystems fsck" }
+        - {hooks: base systemd autodetect modconf kms keyboard sd-vconsole block sd-encrypt lvm2 filesystems fsck}
       become: true
       become_user: root
+      changed_when: true
 
     - name: Run mkinitcpio
-      command: arch-chroot /mnt mkinitcpio -P
+      ansible.builtin.command: arch-chroot /mnt mkinitcpio -P
       become: true
       become_user: root
+      changed_when: true
+
     # Additional tasks can be added for further configuration or customization
     - name: Get UUID of /dev/mapper/MainVolGroup-cryptroot
-      ansible.builtin.command: "blkid -s UUID -o value /dev/mapper/{{ vg_name }}-{{ root_lv }}"
+      ansible.builtin.command: blkid -s UUID -o value /dev/mapper/{{ vg_name }}-{{ root_lv }}
       register: uuid_output
+      changed_when: false
 
     - name: Create EFI Boot Entry
       ansible.builtin.template:
-        src: ../templates/boot_script.j2
+        src: boot_script.j2
         dest: /mnt/boot/efibootmgr_command.sh
-        mode: 0755
+        mode: "0755"
       vars:
-        root_UUID: "{{ uuid_output.stdout }}"
-        microcode_package: "{{ microcode_package }}"
+        root_uuid: "{{ uuid_output.stdout }}"
+        microcode_package: microcode_package
         boot_disk: "{{ storage_devices[0] }}"
       become: true
       become_user: root
@@ -284,28 +298,33 @@
       ansible.builtin.command: arch-chroot /mnt /boot/efibootmgr_command.sh
       become: true
       become_user: root
+      changed_when: true
 
     - name: Systemd enable apparmor
       ansible.builtin.command: arch-chroot /mnt systemctl enable apparmor
       become: true
       become_user: root
+      changed_when: true
 
     - name: NetworkManager enable
-      command: arch-chroot /mnt systemctl enable NetworkManager
+      ansible.builtin.command: arch-chroot /mnt systemctl enable NetworkManager
       become: true
       become_user: root
+      changed_when: true
 
     - name: Set root password
-      command: arch-chroot /mnt /bin/bash -c "echo 'root:{{ root_password }}' | chpasswd"
+      ansible.builtin.command: arch-chroot /mnt /bin/bash -c "echo 'root:{{ root_password }}' | chpasswd"
       changed_when: false
       become: true
 
     - name: Set root shell
-      command: arch-chroot /mnt chsh -s /bin/zsh root
+      ansible.builtin.command: arch-chroot /mnt chsh -s /bin/zsh root
       become: true
       become_user: root
+      changed_when: true
 
     - name: Clone Arch-Linux repo
-      git:
+      ansible.builtin.git:
         repo: https://github.com/thomasdriscoll/arch-linux-ansible.git
         dest: /mnt/root/arch-linux-ansible
+        # noqa: latest
