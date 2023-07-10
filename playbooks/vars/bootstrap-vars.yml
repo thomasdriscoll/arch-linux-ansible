@@ -1,3 +1,4 @@
+---
 vg_name: MainVolGroup
 root_lv: cryptroot
 root_lv_size: 10%FREE
@@ -44,4 +45,3 @@ pacstrap_packages:
   - openssh
   - ansible
   - "{{ microcode_package }}"
-

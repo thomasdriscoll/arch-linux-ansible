@@ -1,3 +1,4 @@
+---
 users:
   - username: thomas
     password:
@@ -11,5 +12,3 @@ users:
     password:
     groups:
       - users
-
-
