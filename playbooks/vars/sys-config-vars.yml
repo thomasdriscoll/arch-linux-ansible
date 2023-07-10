@@ -4,6 +4,7 @@ essential_packages:
   - cmake
   - fakeroot
   - firefox
+  - firejail
   - gcc
   - jdk-openjdk
   - lua-language-server
