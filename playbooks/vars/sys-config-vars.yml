@@ -1,9 +1,11 @@
 ---
 essential_packages:
+  - binutils
   - cmake
+  - fakeroot
   - firefox
   - gcc
   - jdk-openjdk
   - lua-language-server
   - make
-
+  - pkg-config

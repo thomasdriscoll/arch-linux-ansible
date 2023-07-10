@@ -27,6 +27,7 @@ network_name:
 ### Pacstrap packages
 pacstrap_packages:
   - base
+  - base-devel
   - linux
   - linux-firmware
   - networkmanager
