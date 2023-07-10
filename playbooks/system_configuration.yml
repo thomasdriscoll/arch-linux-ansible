@@ -17,18 +17,21 @@
 
     # Create and configure users and permissions
     - name: Configure users
-      include_role:
+      ansible.builtin.include_role:
         name: configure_user
       vars:
         _user: "{{ item }}"
       loop: "{{ users }}"
 
     - name: Install essential initial packages
-      command: "pacman -S --noconfirm {{ item }}"
+      community.general.pacman:
+        name: "{{ item }}"
+        state: present
+        extra_args: --needed --noconfirm
       loop: "{{ essential_packages }}"
 
     - name: Uncomment NOPASSWD for wheel group
-      lineinfile:
+      ansible.builtin.lineinfile:
         path: /etc/sudoers
         regex: '^%wheel\s+ALL=\(ALL\)\s+NOPASSWD: ALL$'
         line: '%wheel ALL=(ALL) NOPASSWD: ALL'
@@ -40,7 +43,7 @@
 
     # Set firewall rules
     - name: Configure UFW Default Policies
-      ufw:
+      community.general.ufw:
         policy: '{{ item.policy }}'
         direction: '{{ item.direction }}'
       with_items:
@@ -48,29 +51,29 @@
         - {policy: 'allow', direction: 'outgoing'}
 
     - name: Limit SSH
-      ufw:
+      community.general.ufw:
         rule: limit
         port: ssh
         proto: tcp
 
     - name: Allow all access from LANs
-      ufw:
+      community.general.ufw:
         rule: allow
         src: 192.168.0.0/24
 
     - name: Enable UFW
-      ufw:
+      community.general.ufw:
         state: enabled
 
     - name: Start NetworkManager
-      service:
+      ansible.builtin.service:
         name: NetworkManager
         state: started
         enabled: true
 
     # Additional security
     - name: Start AppArmor service
-      service:
+      ansible.builtin.service:
         name: apparmor
         state: started
         enabled: true

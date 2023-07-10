@@ -19,7 +19,7 @@ swap_device: "/dev/mapper/{{ swap_decrypt_name }}"
 home_device: "/dev/mapper/{{ home_decrypt_name }}"
 cryptswap_device: "/dev/{{ vg_name }}/{{ swap_lv }}"
 crypttmp_device: "/dev/{{ vg_name }}/{{ tmp_lv }}"
-crypthome_device: "/dev/{{ vg_name }}/{{ home_lv}}"
+crypthome_device: "/dev/{{ vg_name }}/{{ home_lv }}"
 root_device_password:
 root_password:
 network_name:
