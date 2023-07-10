@@ -320,7 +320,9 @@
       changed_when: true
 
     - name: Set root password
-      ansible.builtin.command: arch-chroot /mnt /bin/bash -c "echo 'root:{{ root_password }}' | chpasswd"
+      ansible.builtin.command: >
+        arch-chroot /mnt
+        /bin/bash -c "echo 'root:{{ root_password }}' | chpasswd"
       changed_when: false
       become: true
 
