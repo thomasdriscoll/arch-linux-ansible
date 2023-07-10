@@ -1,5 +1,9 @@
 ---
 essential_packages:
   - cmake
-  - make
+  - firefox
   - gcc
+  - jdk-openjdk
+  - lua-language-server
+  - make
+

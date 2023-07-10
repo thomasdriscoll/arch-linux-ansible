@@ -30,6 +30,14 @@
         extra_args: --needed --noconfirm
       loop: "{{ essential_packages }}"
 
+    - name: Install AUR packages
+      kewlfft.aur.aur:
+        name: "{{ item }}"
+        use: makepkg
+        state: present
+      become: true
+      become_user: aur_builder
+
     - name: Uncomment NOPASSWD for wheel group
       ansible.builtin.lineinfile:
         path: /etc/sudoers
