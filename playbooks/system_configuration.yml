@@ -4,8 +4,8 @@
   become: true
 
   vars_files:
-    - ./variables/sys-config-vars.yml
-    - ./variables/users.yml
+    - sys-config-vars.yml
+    - users.yml
 
   tasks:
     - name: Update pacman first

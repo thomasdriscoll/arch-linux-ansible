@@ -5,7 +5,7 @@
   become: true
 
   vars_files:
-    - ./variables/bootstrap-vars.yml
+    - bootstrap-vars.yml
 
   tasks:
     - name: Gather disk facts
