@@ -1,10 +1,9 @@
 ---
 aur_packages:
-  - javascript-typescript-lang
+  - javascript-typescript-langserver
   - jdtls
-  - nerd-fonts-complete
+  - nerd-fonts-git
   - nvm
-  - snapd
   - spring-boot-cli
   - vscodium
   - zoom-firejail
