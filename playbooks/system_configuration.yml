@@ -3,6 +3,9 @@
   hosts: localhost
   become: true
 
+  collections:
+    - kewlfft.aur
+
   vars_files:
     - sys-config-vars.yml
     - users.yml
