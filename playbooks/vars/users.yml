@@ -8,7 +8,7 @@ users:
     password:
     groups:
       - users
-  - username: aur_builder
+  - username: aurbuilder
     password:
     groups:
       - wheel
