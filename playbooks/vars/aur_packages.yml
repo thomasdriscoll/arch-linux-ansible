@@ -2,8 +2,7 @@
 aur_packages:
   - javascript-typescript-langserver
   - jdtls
-  - nerd-fonts-git
   - nvm
   - spring-boot-cli
-  - vscodium
+  # - vscodium
   - zoom-firejail
