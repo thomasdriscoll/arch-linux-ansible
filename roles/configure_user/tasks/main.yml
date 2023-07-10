@@ -78,7 +78,7 @@
 
 - name: Create Projects directory
   ansible.builtin.file:
-    path: "/home/{{ _user }}/Projects"
+    path: "/home/{{ _user.username }}/Projects"
     state: directory
     mode: "0755"
   become: true
@@ -86,7 +86,7 @@
 
 - name: Delete dotfiles direcotry
   ansible.builtin.file:
-    path: "/home/{{ _user }}/dotfiles"
+    path: "/home/{{ _user.username }}/dotfiles"
     state: absent
   become: true
   become_user: "{{ _user.username }}"
