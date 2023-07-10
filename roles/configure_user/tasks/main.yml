@@ -60,12 +60,14 @@
   become: true
   become_user: "{{ _user.username }}"
 
-- name: Adjust sys-git working directory
+- name: Update sys-git working tree
   # noqa: command-instead-of-module
   ansible.builtin.command: >
-    "git --git-dir=/home/{{ _user.username }}/.cfg
+    git --git-dir=/home/{{ _user.username }}/.cfg
     --work-tree=/home/{{ _user.username }}
-    config core.worktree /home/{{ _user.username }}"
+    config core.worktree /home/{{ _user.username }}
+  become: true
+  become_user: "{{ _user.username }}"
   changed_when: true
 
 - name: Add AUR ansible collection
