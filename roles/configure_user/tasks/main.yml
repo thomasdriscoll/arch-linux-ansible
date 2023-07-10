@@ -1,6 +1,6 @@
 ---
 - name: Create users
-  user:
+  ansible.builtin.user:
     name: "{{ _user.username }}"
     password: "{{ _user.password | password_hash('sha512', _user.username) }}"
     groups: "{{ _user.groups }}"
@@ -11,14 +11,15 @@
 
 ### Need to add SSH key
 - name: Make .ssh folder
-  file:
+  ansible.builtin.file:
     path: "/home/{{ _user.username }}/.ssh"
     state: directory
+    mode: "0700"
   become: true
   become_user: "{{ _user.username }}"
 
 - name: Generate OpenSSH key pair
-  openssh_keypair:
+  community.crypto.openssh_keypair:
     path: "/home/{{ _user.username }}/.ssh/github"
     type: rsa
     size: 2048
@@ -28,52 +29,62 @@
 
 ### Being config cloning
 - name: Clone dotfiles
-  git:
+  ansible.builtin.git:
     repo: https://github.com/thomasdriscoll/dotfiles.git
     dest: "/home/{{ _user.username }}/dotfiles"
     separate_git_dir: "~/.cfg"
+    # noqa: latest
   become: true
   become_user: "{{ _user.username }}"
 
 - name: Move files one level up
-  command: "ls -a /home/{{ _user.username }}/dotfiles"
+  ansible.builtin.command: "ls -a /home/{{ _user.username }}/dotfiles"
   register: dotfiles_to_move
+  changed_when: false
 
 - name: Move files to destination
-  command: mv "/home/{{ _user.username }}/dotfiles/{{ iterator }}" "/home/{{ _user.username }}/"
+  ansible.builtin.command: >
+    mv
+    "/home/{{ _user.username }}/dotfiles/{{ iterator }}"
+    "/home/{{ _user.username }}/"
   loop: "{{ dotfiles_to_move.stdout_lines[2:] }}"
   loop_control:
     loop_var: iterator
+  changed_when: true
 
 - name: Clone neovim-config
-  git:
+  ansible.builtin.git:
     repo: https://github.com/thomasdriscoll/neovim-config.git
     dest: "/home/{{ _user.username }}/.config/nvim"
+    # noqa: latest
   become: true
   become_user: "{{ _user.username }}"
 
-- name: Update Git working tree
-  command: git --git-dir=/home/{{ _user.username }}/.cfg --work-tree=/home/{{ _user.username }} config core.worktree /home/{{ _user.username }}
-  become: true
-  become_user: "{{ _user.username }}"
+- name: Adjust sys-git working directory
+  # noqa: command-instead-of-module
+  ansible.builtin.command: >
+    "git --git-dir=/home/{{ _user.username }}/.cfg
+    --work-tree=/home/{{ _user.username }}
+    config core.worktree /home/{{ _user.username }}"
+  changed_when: true
 
 - name: Add AUR ansible collection
-  command: ansible-galaxy collection install kewlfft.aur
+  ansible.builtin.command: ansible-galaxy collection install kewlfft.aur
   become: true
   become_user: "{{ _user.username }}"
+  changed_when: true
 
-- name: create Projects directory
-  file:
+- name: Create Projects directory
+  ansible.builtin.file:
     path: "/home/{{ _user }}/Projects"
     state: directory
+    mode: "0755"
   become: true
   become_user: "{{ _user.username }}"
 
-- name: delete dotfiles direcotry
-  file:
+- name: Delete dotfiles direcotry
+  ansible.builtin.file:
     path: "/home/{{ _user }}/dotfiles"
     state: absent
   become: true
   become_user: "{{ _user.username }}"
-
-
