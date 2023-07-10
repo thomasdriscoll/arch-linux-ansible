@@ -13,16 +13,25 @@
       changed_when: true
 
     - name: Install Xorg environment
-      ansible.builtin.command: "pacman -S --noconfirm {{ item }}"
+      community.general.pacman:
+        name: "{{ item }}"
+        state: present
+        extra_args: --needed --noconfirm
       loop: "{{ xorg_packages }}"
       changed_when: true
 
     - name: Install Plasma
-      ansible.builtin.command: pacman -S --noconfirm plasma
+      community.general.pacman:
+        name: plasma
+        state: present
+        extra_args: --needed --noconfirm
       changed_when: true
 
     - name: Install Display Manager (SDDM)
-      ansible.builtin.command: pacman -S --noconfirm sddm
+      community.general.pacman:
+        name: sddm
+        state: present
+        extra_args: --needed --noconfirm
       changed_when: true
 
     - name: Enable SDDM
