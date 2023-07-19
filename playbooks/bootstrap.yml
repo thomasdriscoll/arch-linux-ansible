@@ -10,18 +10,6 @@
   tasks:
     - name: Gather disk facts
       ansible.builtin.setup:
-    # manually set the list of devices
-    - name: Initialize list for devices
-      ansible.builtin.set_fact:
-        storage_devices:
-          - /dev/sda
-      no_log: true
-
-    - name: Name all the partitions
-      ansible.builtin.set_fact:
-        partitions:
-          - /dev/sda1
-          - /dev/sda2
 
     - name: Create boot partition
       community.general.parted:
