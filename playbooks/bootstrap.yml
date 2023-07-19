@@ -266,13 +266,24 @@
         fstype: ext4
         state: mounted
 
-    - name: Configure mkinitcpio
+    - name: Configure mkinitcpio hooks
       ansible.builtin.lineinfile:
         path: /mnt/etc/mkinitcpio.conf
         regexp: ^HOOKS=(.*)
         line: HOOKS=({{ item.hooks }})
       with_items:
         - {hooks: base systemd autodetect modconf kms keyboard sd-vconsole block sd-encrypt lvm2 filesystems fsck}
+      become: true
+      become_user: root
+      changed_when: true
+
+    - name: Configure mkinitcpio modules
+      ansible.builtin.lineinfile:
+        path: /mnt/etc/mkinitcpio.conf
+        regexp: ^MODULES=(.*)
+        line: MODULES=({{ item.modules }})
+      with_items:
+        - {modules: usbhid xhci_hcd ext4}
       become: true
       become_user: root
       changed_when: true
