@@ -1,47 +1,15 @@
 ---
-- name: Desktop configuration
+- name: i3 + KDE configuration
   hosts: localhost
-  become: true
-  become_user: root
 
-  vars_files:
-    - kde.yml
+  vars_prompt:
+    - name: selected_role
+      prompt: "Choose a desktop configuration (valid choices: kde_i3_desktop)"
+      private: no
+      validate: "^(kde_i3_desktop)$"
 
   tasks:
-    - name: Update pacman
-      ansible.builtin.command: pacman -Syu --noconfirm
-      changed_when: true
-
-    - name: Install Xorg environment
-      community.general.pacman:
-        name: "{{ item }}"
-        state: present
-        extra_args: --needed --noconfirm
-      loop: "{{ xorg_packages }}"
-      changed_when: true
-
-    - name: Install Plasma
-      community.general.pacman:
-        name: plasma
-        state: present
-        extra_args: --needed --noconfirm
-      changed_when: true
-
-    - name: Install Display Manager (SDDM)
-      community.general.pacman:
-        name: sddm
-        state: present
-        extra_args: --needed --noconfirm
-      changed_when: true
-
-    - name: Enable SDDM
-      ansible.builtin.service:
-        name: sddm
-        state: stopped
-        enabled: true
-      changed_when: true
-
-    - name: Install additional packages
-      ansible.builtin.command: "pacman -S --noconfirm {{ item }}"
-      loop: "{{ desktop_packages }}"
-      changed_when: true
+    - name: Use kde/i3 role
+      include_role:
+        name: "kde_i3_desktop"
+      when: selected_role == "kde_i3_desktop"
