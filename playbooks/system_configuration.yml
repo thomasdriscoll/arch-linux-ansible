@@ -1,14 +1,4 @@
 ---
-- name: Install AUR collection
-  hosts: localhost
-  gather_facts: false
-  become: true
-  become_user: root
-
-  tasks:
-    - name: Install kewlfft.aur.aur collection
-      command: ansible-galaxy collection install kewlfft.aur
-
 - name: Post-install system configuration
   hosts: localhost
   become: true

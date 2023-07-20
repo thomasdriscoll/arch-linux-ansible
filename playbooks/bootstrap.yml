@@ -336,3 +336,7 @@
         repo: https://github.com/thomasdriscoll/arch-linux-ansible.git
         dest: /mnt/root/arch-linux-ansible
         # noqa: latest
+
+    - name: Install kewlfft.aur.aur collection
+      command: arch-chroot /mnt ansible-galaxy collection install kewlfft.aur
+      changed_when: true
