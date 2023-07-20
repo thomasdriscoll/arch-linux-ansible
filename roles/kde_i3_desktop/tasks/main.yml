@@ -4,9 +4,6 @@
   become: true
   become_user: root
 
-  vars_files:
-    - kde.yml
-
   tasks:
     - name: Update pacman
       ansible.builtin.command: pacman -Syu --noconfirm

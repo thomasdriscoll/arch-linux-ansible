@@ -1,8 +1,0 @@
----
-aur_packages:
-  - javascript-typescript-langserver
-  - jdtls
-  - nvm
-  - spring-boot-cli
-  # - vscodium
-  - zoom-firejail

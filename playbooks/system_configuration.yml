@@ -7,9 +7,14 @@
     - kewlfft.aur
 
   vars_files:
-    - aur_packages.yml
-    - sys-config-vars.yml
+    - packages.yml
     - users.yml
+
+  vars_prompt:
+    - name: selected_role
+      prompt: "Choose a desktop configuration (valid choices: kde_i3_desktop)"
+      private: false
+      validate: "^(kde_i3_desktop)$"
 
   tasks:
     - name: Update pacman first
@@ -90,3 +95,8 @@
         name: apparmor
         state: started
         enabled: true
+
+    - name: Use kde/i3 role
+      include_role:
+        name: "kde_i3_desktop"
+      when: selected_role == "kde_i3_desktop"

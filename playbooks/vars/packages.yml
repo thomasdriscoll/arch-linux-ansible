@@ -65,3 +65,11 @@ essential_packages:
   - ttf-ubuntu-mono-nerd
   - ttf-ubuntu-nerd
   - ttf-victor-mono-nerd
+
+aur_packages:
+  - javascript-typescript-langserver
+  - jdtls
+  - nvm
+  - spring-boot-cli
+  # - vscodium
+  - zoom-firejail
