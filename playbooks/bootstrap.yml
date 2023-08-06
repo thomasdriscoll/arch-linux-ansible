@@ -338,5 +338,6 @@
         # noqa: latest
 
     - name: Install kewlfft.aur.aur collection
-      command: arch-chroot /mnt ansible-galaxy collection install kewlfft.aur
+      ansible.builtin.command: >
+        arch-chroot /mnt ansible-galaxy collection install kewlfft.aur
       changed_when: true
